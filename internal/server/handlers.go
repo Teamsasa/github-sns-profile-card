@@ -1,11 +1,18 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	svg "github.com/ajstarks/svgo"
 )
+
+type qiitaUserInf struct {
+	ArticlesCount  int `json:"items_count"`
+	FolloweesCount int `json:"followees_count"`
+	FollowersCount int `json:"followers_count"`
+}
 
 // defaultHandler returns a 404 error for all requests. If a route is not found, this handler is called.
 func (s *Server) defaultHandler(w http.ResponseWriter, r *http.Request) {
@@ -36,6 +43,29 @@ func assetsHandler(fs http.FileSystem) http.Handler {
 
 		http.FileServer(fs).ServeHTTP(w, r)
 	})
+}
+
+func (s *Server) QiitaHandler(w http.ResponseWriter, r *http.Request) {
+	username := r.URL.Query().Get("userid")
+	if username == "" {
+		http.Error(w, "userid is required", http.StatusBadRequest)
+		return
+	}
+
+	resp, err := http.Get(fmt.Sprintf("https://qiita.com/api/v2/users/%s", username))
+	if err != nil || resp.StatusCode != http.StatusOK {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var user qiitaUserInf
+	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	fmt.Fprint(w, user)
 }
 
 func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {

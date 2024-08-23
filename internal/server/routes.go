@@ -9,6 +9,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.defaultHandler)
+	mux.HandleFunc("/qiita", s.QiitaHandler)
 	mux.HandleFunc("/svg", s.SVGHandler)
 
 	assetsDir := http.Dir(filepath.Join("internal", "server", "assets"))
