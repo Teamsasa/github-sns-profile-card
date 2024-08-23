@@ -22,7 +22,7 @@ type PlatformUserInfo struct {
 	ArticlesCount  int
 }
 
-//汎用エラーハンドリング関数
+// 汎用エラーハンドリング関数
 func handleError(w http.ResponseWriter, err error, statusCode int, message string) {
 	w.WriteHeader(statusCode)
 	w.Write([]byte(message))

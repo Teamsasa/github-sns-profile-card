@@ -28,7 +28,3 @@ tmp/
 # Project build
 main
 *templ.go
-
-# Log files
-*.log
-*.history
