@@ -11,7 +11,7 @@ import (
 var platformIcons = map[string]string{
 	"zenn":          "/assets/zenn.png",
 	"qiita":         "/assets/qiita.png",
-	"x":       "/assets/twitter.png",
+	"twitter":       "/assets/twitter.png",
 	"linkedin":      "/assets/linkedin.png",
 	"stackoverflow": "/assets/stackoverflow.png",
 	"atcoder":       "/assets/atcoder.png",
