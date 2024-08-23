@@ -5,10 +5,14 @@ import (
 	"path/filepath"
 )
 
+func assetsHandler(dir http.Dir) http.Handler {
+	return http.FileServer(dir)
+}
+
 func (s *Server) RegisterRoutes() http.Handler {
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", s.defaultHandler)
+	mux.HandleFunc("/", s.DefaultHandler)
 	mux.HandleFunc("/qiita", s.QiitaHandler)
 	mux.HandleFunc("/svg", s.SVGHandler)
 
@@ -16,4 +20,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 	mux.Handle("/assets/", http.StripPrefix("/assets/", assetsHandler(assetsDir)))
 
 	return mux
+}
+
+func (s *Server) DefaultHandler(w http.ResponseWriter, r *http.Request) {
+	// Implement the logic for the default handler here
+}
+
+func (s *Server) QiitaHandler(w http.ResponseWriter, r *http.Request) {
+	// Implement the logic for the QiitaHandler here
 }
