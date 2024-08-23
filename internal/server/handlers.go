@@ -14,12 +14,14 @@ var platformIcons = map[string]string{
 	"x":       "/assets/twitter.png",
 	"linkedin":      "/assets/linkedin.png",
 	"stackoverflow": "/assets/stackoverflow.png",
+	"atcoder":       "/assets/atcoder.png",
 }
 
 type PlatformUserInfo struct {
 	FollowersCount int
 	FollowingCount int
 	ArticlesCount  int
+	Rating         int // AtCoder用のフィールド
 }
 
 // 汎用エラーハンドリング関数
@@ -69,6 +71,11 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	canvas.Text(120, 30, fmt.Sprintf("Followers: %d", userInfo.FollowersCount), "font-family:Arial;font-size:14px")
 	canvas.Text(120, 55, fmt.Sprintf("Following: %d", userInfo.FollowingCount), "font-family:Arial;font-size:14px")
 	canvas.Text(120, 80, fmt.Sprintf("Posts: %d", userInfo.ArticlesCount), "font-family:Arial;font-size:14px")
+
+	// AtCoderの場合はRatingも表示
+	if platform == "atcoder" {
+		canvas.Text(120, 105, fmt.Sprintf("Rating: %d", userInfo.Rating), "font-family:Arial;font-size:14px")
+	}
 }
 
 // 各プラットフォームからデータを取得する関数
@@ -84,6 +91,8 @@ func fetchUserData(platform, username string) (*PlatformUserInfo, error) {
 		return fetchLinkedinData(username)
 	case "stackoverflow":
 		return fetchStackoverflowData(username)
+	case "atcoder":
+		return fetchAtCoderData(username)
 	}
 	return nil, fmt.Errorf("platform not supported")
 }
@@ -194,5 +203,26 @@ func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
 		FollowersCount: user.Reputation,   // StackOverflowではReputationをFollowersCountとして代用
 		FollowingCount: 0,                 // StackOverflow APIにはフォロー中のユーザー数がないため、0を返します
 		ArticlesCount:  user.AnswerCount + user.QuestionCount, // 回答数と質問数の合計を投稿数として扱います
+	}, nil
+}
+
+// AtCoderのユーザーデータを取得する関数
+func fetchAtCoderData(username string) (*PlatformUserInfo, error) {
+	resp, err := http.Get(fmt.Sprintf("https://atcoder.jp/users/%s", username)) // 仮のURL
+	if err != nil || resp.StatusCode != http.StatusOK {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var user struct {
+		Rating int `json:"rating"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
+		return nil, err
+	}
+
+	return &PlatformUserInfo{
+		Rating: user.Rating,
 	}, nil
 }
