@@ -11,3 +11,9 @@ $ make watch
 ```bash
 $ make run
 ```
+
+- アクセス
+```
+http://localhost:8080/svg?platform=qiita&userid=user_name
+```
+.envに`PORT = 8080`を書いてね

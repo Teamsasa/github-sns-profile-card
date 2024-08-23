@@ -13,7 +13,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.DefaultHandler)
-	mux.HandleFunc("/qiita", s.QiitaHandler)
 	mux.HandleFunc("/svg", s.SVGHandler)
 
 	assetsDir := http.Dir(filepath.Join("internal", "server", "assets"))
@@ -24,8 +23,4 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 func (s *Server) DefaultHandler(w http.ResponseWriter, r *http.Request) {
 	// Implement the logic for the default handler here
-}
-
-func (s *Server) QiitaHandler(w http.ResponseWriter, r *http.Request) {
-	// Implement the logic for the QiitaHandler here
 }
