@@ -11,7 +11,7 @@ import (
 var platformIcons = map[string]string{
 	"zenn":          "/assets/zenn.png",
 	"qiita":         "/assets/qiita.png",
-	"twitter":       "/assets/twitter.png",
+	"x":       "/assets/twitter.png",
 	"linkedin":      "/assets/linkedin.png",
 	"stackoverflow": "/assets/stackoverflow.png",
 }
@@ -77,13 +77,13 @@ func fetchUserData(platform, username string) (*PlatformUserInfo, error) {
 	case "qiita":
 		return fetchQiitaData(username)
 	case "twitter":
-		// Twitter用のデータ取得処理を追加
+		return fetchTwitterData(username)
 	case "zenn":
-		// Zenn用のデータ取得処理を追加
+		return fetchZennData(username)
 	case "linkedin":
-		// LinkedIn用のデータ取得処理を追加
+		return fetchLinkedinData(username)
 	case "stackoverflow":
-		// StackOverflow用のデータ取得処理を追加
+		return fetchStackoverflowData(username)
 	}
 	return nil, fmt.Errorf("platform not supported")
 }
@@ -110,5 +110,88 @@ func fetchQiitaData(username string) (*PlatformUserInfo, error) {
 		FollowersCount: user.FollowersCount,
 		FollowingCount: user.FolloweesCount,
 		ArticlesCount:  user.ArticlesCount,
+	}, nil
+}
+
+func fetchTwitterData(username string) (*PlatformUserInfo, error) {
+	resp, err := http.Get(fmt.Sprintf("https://api.twitter.com/2/users/by/username/%s", username))
+	if err != nil || resp.StatusCode != http.StatusOK {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var user struct {
+		FollowersCount int `json:"followers_count"`
+		FolloweesCount int `json:"following_count"` // Twitter APIでは"following_count"と呼ばれる場合が多い
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
+		return nil, err
+	}
+
+	return &PlatformUserInfo{
+		FollowersCount: user.FollowersCount,
+		FollowingCount: user.FolloweesCount,
+		ArticlesCount:  0, // Twitterは投稿数の取得がAPIでサポートされていないため、0を返します
+	}, nil
+}
+
+func fetchZennData(username string) (*PlatformUserInfo, error) {
+	resp, err := http.Get(fmt.Sprintf("https://zenn.dev/api/users/%s", username))
+	if err != nil || resp.StatusCode != http.StatusOK {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var user struct {
+		FollowersCount int `json:"followers_count"`
+		ArticlesCount  int `json:"articles_count"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
+		return nil, err
+	}
+
+	return &PlatformUserInfo{
+		FollowersCount: user.FollowersCount,
+		FollowingCount: 0, // Zenn APIにはフォロー中のユーザー数がないため、0を返します
+		ArticlesCount:  user.ArticlesCount,
+	}, nil
+}
+
+func fetchLinkedinData(username string) (*PlatformUserInfo, error) {
+	//課金が必要なため、実装は省略
+	return nil, fmt.Errorf("not implemented")
+}
+
+func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
+	resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s?site=stackoverflow", username))
+	if err != nil || resp.StatusCode != http.StatusOK {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var response struct {
+		Items []struct {
+			Reputation   int `json:"reputation"`
+			AnswerCount  int `json:"answer_count"`
+			QuestionCount int `json:"question_count"`
+		} `json:"items"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, err
+	}
+
+	if len(response.Items) == 0 {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	user := response.Items[0]
+
+	return &PlatformUserInfo{
+		FollowersCount: user.Reputation,   // StackOverflowではReputationをFollowersCountとして代用
+		FollowingCount: 0,                 // StackOverflow APIにはフォロー中のユーザー数がないため、0を返します
+		ArticlesCount:  user.AnswerCount + user.QuestionCount, // 回答数と質問数の合計を投稿数として扱います
 	}, nil
 }
