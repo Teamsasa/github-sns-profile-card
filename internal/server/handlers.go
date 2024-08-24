@@ -56,7 +56,7 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "image/svg+xml")
 
 	width := 300
-	height := 100
+	height := 150
 	canvas := svg.New(w)
 	canvas.Start(width, height)
 	defer canvas.End()
@@ -68,9 +68,10 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	canvas.Image(10, 10, 80, 80, iconURL)
 
 	// 統計情報
-	canvas.Text(120, 30, fmt.Sprintf("Followers: %d", userInfo.FollowersCount), "font-family:Arial;font-size:14px")
-	canvas.Text(120, 55, fmt.Sprintf("Following: %d", userInfo.FollowingCount), "font-family:Arial;font-size:14px")
-	canvas.Text(120, 80, fmt.Sprintf("Posts: %d", userInfo.ArticlesCount), "font-family:Arial;font-size:14px")
+	canvas.Text(120, 30, fmt.Sprintf("@%s", username), "font-family:Arial;font-size:14px")
+	canvas.Text(120, 55, fmt.Sprintf("Followers: %d", userInfo.FollowersCount), "font-family:Arial;font-size:14px")
+	canvas.Text(120, 80, fmt.Sprintf("Following: %d", userInfo.FollowingCount), "font-family:Arial;font-size:14px")
+	canvas.Text(120, 105, fmt.Sprintf("Posts: %d", userInfo.ArticlesCount), "font-family:Arial;font-size:14px")
 
 	// AtCoderの場合はRatingも表示
 	if platform == "atcoder" {
