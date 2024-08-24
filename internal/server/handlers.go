@@ -1,70 +1,13 @@
 package server
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"sync"
+	"profile/internal/model"
+	"profile/internal/usecase"
 
 	svg "github.com/ajstarks/svgo"
 )
-
-var platformIcons = map[string]string{
-	"zenn":          "/assets/zenn.png",
-	"qiita":         "/assets/qiita.png",
-	"twitter":       "/assets/twitter.png",
-	"linkedin":      "/assets/linkedin.png",
-	"stackoverflow": "/assets/stackoverflow.png",
-	"atcoder":       "/assets/atcoder.png",
-}
-
-var platformURLs = map[string]string{
-	"zenn":          "https://zenn.dev/",
-	"qiita":         "https://qiita.com/",
-	"twitter":       "https://x.com/",
-	"linkedin":      "https://linkedin.com/in/",
-	"stackoverflow": "https://stackoverflow.com/users/",
-	"atcoder":       "https://atcoder.jp/usres/",
-}
-
-var platformColors = map[string]string{
-	"zenn":          "#3EA8FF",
-	"qiita":         "#55C500",
-	"twitter":       "#FFFFFF",
-	"linkedin":      "#0A66C2",
-	"stackoverflow": "#F48024",
-	"atcoder":       "#000000",
-}
-
-var platformBgColors = map[string]string{
-	"zenn":          "#F1F5F9",
-	"qiita":         "#F5F6F6",
-	"twitter":       "#000000",
-	"linkedin":      "##F4F2EE",
-	"stackoverflow": "#FFFFFB",
-	"atcoder":       "#EBEBEB",
-}
-
-var platformFontColors = map[string]string{
-	"zenn":          "#000000",
-	"qiita":         "#000000",
-	"twitter":       "#FFFFFF",
-	"linkedin":      "#000000",
-	"stackoverflow": "#000000",
-	"atcoder":       "#000000",
-}
-
-type PlatformUserInfo struct {
-	FollowersCount int
-	FollowingCount int
-	ArticlesCount  int
-	LikeCount      int    // Zenn用のフィールド
-	UserName       string // Stackoverflow用のフィールド
-	Reputation     int    // StackOverflow用のフィールド
-	AnswerCount    int    // StackOverflow用のフィールド
-	QuestionCount  int    // StackOverflow用のフィールド
-	Rating         int    // AtCoder用のフィールド
-}
 
 // 汎用エラーハンドリング関数
 func handleError(w http.ResponseWriter, err error, statusCode int, message string) {
@@ -82,13 +25,13 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	iconURL, exists := platformIcons[platform]
+	iconURL, exists := model.PlatformIcons[platform]
 	if !exists {
 		handleError(w, nil, http.StatusBadRequest, "Unknown platform")
 		return
 	}
 
-	urlBase, exists := platformURLs[platform]
+	urlBase, exists := model.PlatformURLs[platform]
 	if !exists || username == "" {
 		handleError(w, nil, http.StatusBadRequest, "Unknown platform or empty username")
 		return
@@ -109,7 +52,7 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	height := 120
 	borderRadius := 20
 	strokeWidth := 4
-	textColor := platformFontColors[platform]
+	textColor := model.PlatformFontColors[platform]
 	canvas := svg.New(w)
 	canvas.Start(width+(2*strokeWidth), height+(2*strokeWidth))
 	defer canvas.End()
@@ -119,11 +62,11 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 外枠を描画
 	canvas.Rect(strokeWidth, strokeWidth, width, height,
-		fmt.Sprintf("fill:none;rx:%d;ry:%d;stroke:%s;stroke-width:%d", borderRadius, borderRadius, platformColors[platform], strokeWidth))
+		fmt.Sprintf("fill:none;rx:%d;ry:%d;stroke:%s;stroke-width:%d", borderRadius, borderRadius, model.PlatformColors[platform], strokeWidth))
 
 	// 背景（角丸の長方形）
 	canvas.Rect(strokeWidth, strokeWidth, width, height,
-		fmt.Sprintf("fill:%s;rx:%d;ry:%d", platformBgColors[platform], borderRadius, borderRadius))
+		fmt.Sprintf("fill:%s;rx:%d;ry:%d", model.PlatformBgColors[platform], borderRadius, borderRadius))
 
 	// アイコン
 	canvas.Image(20+strokeWidth, 20+strokeWidth, 80, 80, iconURL)
@@ -135,7 +78,7 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", username), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
 	if platform == "stackoverflow" {
-		canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Reputation: %s", formatNumber(userInfo.Reputation)), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+		canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Reputation: %s", usecase.FormatNumber(userInfo.Reputation)), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else {
 		canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Followers: %d", userInfo.FollowersCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
@@ -174,289 +117,20 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // 各プラットフォームからデータを取得する関数
-func fetchUserData(platform, username string) (*PlatformUserInfo, error) {
+func fetchUserData(platform, username string) (*model.PlatformUserInfo, error) {
 	switch platform {
 	case "qiita":
-		return fetchQiitaData(username)
+		return usecase.FetchQiitaData(username)
 	case "twitter":
-		return fetchTwitterData(username)
+		return usecase.FetchTwitterData(username)
 	case "zenn":
-		return fetchZennData(username)
+		return usecase.FetchZennData(username)
 	case "linkedin":
-		return fetchLinkedinData(username)
+		return usecase.FetchLinkedinData(username)
 	case "stackoverflow":
-		return fetchStackoverflowData(username)
+		return usecase.FetchStackoverflowData(username)
 	case "atcoder":
-		return fetchAtCoderData(username)
+		return usecase.FetchAtCoderData(username)
 	}
 	return nil, fmt.Errorf("platform not supported")
-}
-
-// Qiitaのユーザーデータを取得する関数
-func fetchQiitaData(username string) (*PlatformUserInfo, error) {
-	resp, err := http.Get(fmt.Sprintf("https://qiita.com/api/v2/users/%s", username))
-	if err != nil || resp.StatusCode != http.StatusOK {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	var user struct {
-		FollowersCount int `json:"followers_count"`
-		FolloweesCount int `json:"followees_count"`
-		ArticlesCount  int `json:"items_count"`
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
-		return nil, err
-	}
-
-	return &PlatformUserInfo{
-		FollowersCount: user.FollowersCount,
-		FollowingCount: user.FolloweesCount,
-		ArticlesCount:  user.ArticlesCount,
-	}, nil
-}
-
-func fetchTwitterData(username string) (*PlatformUserInfo, error) {
-	resp, err := http.Get(fmt.Sprintf("https://api.twitter.com/2/users/by/username/%s", username))
-	if err != nil || resp.StatusCode != http.StatusOK {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	var user struct {
-		FollowersCount int `json:"followers_count"`
-		FolloweesCount int `json:"following_count"` // Twitter APIでは"following_count"と呼ばれる場合が多い
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
-		return nil, err
-	}
-
-	return &PlatformUserInfo{
-		FollowersCount: user.FollowersCount,
-		FollowingCount: user.FolloweesCount,
-		ArticlesCount:  0, // Twitterは投稿数の取得がAPIでサポートされていないため、0を返します
-	}, nil
-}
-
-func fetchZennData(username string) (*PlatformUserInfo, error) {
-	resp, err := http.Get(fmt.Sprintf("https://zenn.dev/api/users/%s", username))
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("user not found")
-	}
-	defer resp.Body.Close()
-
-	var user struct {
-		User struct {
-			FollowersCount int `json:"follower_count"`
-			LikeCount      int `json:"total_liked_count"`
-			ArticlesCount  int `json:"articles_count"`
-		} `json:"user"`
-	}
-
-	fmt.Println(resp.Body)
-	fmt.Println(user)
-
-	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
-		return nil, err
-	}
-
-	return &PlatformUserInfo{
-		FollowersCount: user.User.FollowersCount,
-		LikeCount:      user.User.LikeCount,
-		ArticlesCount:  user.User.ArticlesCount,
-	}, nil
-}
-
-func fetchLinkedinData(username string) (*PlatformUserInfo, error) {
-	//課金が必要なため、実装は省略
-	_ = username
-	return nil, fmt.Errorf("not implemented")
-}
-
-func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
-	for _, c := range username {
-		if c < '0' || c > '9' {
-			return nil, fmt.Errorf("id must be numeric")
-		}
-	}
-
-	var wg sync.WaitGroup
-	reputationChan := make(chan struct {
-		Reputation  int
-		DisplayName string
-	})
-	answerCountChan := make(chan int)
-	questionCountChan := make(chan int)
-	errChan := make(chan error, 3)
-
-	// reputationを取得
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s?site=stackoverflow", username))
-		if err != nil {
-			errChan <- err
-			return
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			errChan <- fmt.Errorf("fetch failed")
-			return
-		}
-		var respReputation struct {
-			Items []struct {
-				Reputation  int    `json:"reputation"`
-				DisplayName string `json:"display_name"`
-			} `json:"items"`
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&respReputation); err != nil {
-			errChan <- err
-			return
-		}
-		// ユーザーが削除された場合？にステータスコードは200だが、itemsが空になる
-		if len(respReputation.Items) == 0 {
-			errChan <- fmt.Errorf("user not found")
-			return
-		}
-		reputationChan <- struct {
-			Reputation  int
-			DisplayName string
-		}{
-			Reputation:  respReputation.Items[0].Reputation,
-			DisplayName: respReputation.Items[0].DisplayName,
-		}
-	}()
-
-	// 回答数を取得
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s/answers?pagesize=100&site=stackoverflow", username))
-		if err != nil {
-			errChan <- err
-			return
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			errChan <- fmt.Errorf("fetch failed")
-			return
-		}
-		var respAnswers struct {
-			Items []struct {
-				Content []interface{} `json:"content"`
-			} `json:"items"`
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&respAnswers); err != nil {
-			errChan <- err
-			return
-		}
-		answerCountChan <- len(respAnswers.Items)
-	}()
-
-	// 質問数を取得
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s/questions?pagesize=100&site=stackoverflow", username))
-		if err != nil {
-			errChan <- err
-			return
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			errChan <- fmt.Errorf("fetch failed")
-			return
-		}
-		var respQuestions struct {
-			Items []struct {
-				Content []interface{} `json:"content"`
-			} `json:"items"`
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&respQuestions); err != nil {
-			errChan <- err
-			return
-		}
-		questionCountChan <- len(respQuestions.Items)
-	}()
-
-	go func() {
-		wg.Wait()
-		close(reputationChan)
-		close(answerCountChan)
-		close(questionCountChan)
-		close(errChan)
-	}()
-
-	var reputation, answerCount, questionCount int
-	var displayName string
-	for {
-		select {
-		case rep, ok := <-reputationChan:
-			if ok {
-				reputation = rep.Reputation
-				displayName = rep.DisplayName
-			}
-		case ans, ok := <-answerCountChan:
-			if ok {
-				answerCount = ans
-			}
-		case ques, ok := <-questionCountChan:
-			if ok {
-				questionCount = ques
-			}
-		case err := <-errChan:
-			if err != nil {
-				return nil, err
-			}
-		}
-		if reputation != 0 && answerCount != 0 && questionCount != 0 {
-			break
-		}
-	}
-
-	return &PlatformUserInfo{
-		UserName:      displayName,
-		Reputation:    reputation,
-		AnswerCount:   answerCount,
-		QuestionCount: questionCount,
-	}, nil
-}
-
-// AtCoderのユーザーデータを取得する関数
-func fetchAtCoderData(username string) (*PlatformUserInfo, error) {
-	resp, err := http.Get(fmt.Sprintf("https://atcoder.jp/users/%s", username)) // 仮のURL
-	if err != nil || resp.StatusCode != http.StatusOK {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	var user struct {
-		Rating int `json:"rating"`
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
-		return nil, err
-	}
-
-	return &PlatformUserInfo{
-		Rating: user.Rating,
-	}, nil
-}
-
-func formatNumber(n int) string {
-	switch {
-	case n >= 1_000_000_000:
-		return fmt.Sprintf("%.1fB", float64(n)/1_000_000_000)
-	case n >= 1_000_000:
-		return fmt.Sprintf("%.1fM", float64(n)/1_000_000)
-	case n >= 1_000:
-		return fmt.Sprintf("%.1fK", float64(n)/1_000)
-	default:
-		return fmt.Sprintf("%d", n)
-	}
 }
