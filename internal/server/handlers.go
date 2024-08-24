@@ -215,8 +215,11 @@ func fetchZennData(username string) (*PlatformUserInfo, error) {
 	defer resp.Body.Close()
 
 	var user struct {
-		FollowersCount int `json:"followers_count"`
-		ArticlesCount  int `json:"articles_count"`
+		User struct {
+			FollowersCount int `json:"follower_count"`
+			FollowingCount int `json:"following_count"`
+			ArticlesCount  int `json:"articles_count"`
+		} `json:"user"`
 	}
 
 	fmt.Println(resp.Body)
@@ -227,9 +230,9 @@ func fetchZennData(username string) (*PlatformUserInfo, error) {
 	}
 
 	return &PlatformUserInfo{
-		FollowersCount: user.FollowersCount,
-		FollowingCount: 0, // Zenn APIにはフォロー中のユーザー数がないため、0を返します
-		ArticlesCount:  user.ArticlesCount,
+		FollowersCount: user.User.FollowersCount,
+		FollowingCount: user.User.FollowingCount,
+		ArticlesCount:  user.User.ArticlesCount,
 	}, nil
 }
 
