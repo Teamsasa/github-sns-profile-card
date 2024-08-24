@@ -57,6 +57,7 @@ type PlatformUserInfo struct {
 	FollowersCount int
 	FollowingCount int
 	ArticlesCount  int
+	LikeCount      int // Zenn用のフィールド
 	Rating         int // AtCoder用のフィールド
 }
 
@@ -125,7 +126,13 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	// 統計情報
 	canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", username), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Followers: %d", userInfo.FollowersCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
-	canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Following: %d", userInfo.FollowingCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+
+	if platform != "zenn" {
+		canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Following: %d", userInfo.FollowingCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	} else {
+		canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Likes: %d", userInfo.LikeCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	}
+
 	canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Posts: %d", userInfo.ArticlesCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 
 	// AtCoderの場合はRatingも表示
@@ -217,7 +224,7 @@ func fetchZennData(username string) (*PlatformUserInfo, error) {
 	var user struct {
 		User struct {
 			FollowersCount int `json:"follower_count"`
-			FollowingCount int `json:"following_count"`
+			LikeCount      int `json:"total_liked_count"`
 			ArticlesCount  int `json:"articles_count"`
 		} `json:"user"`
 	}
@@ -231,7 +238,7 @@ func fetchZennData(username string) (*PlatformUserInfo, error) {
 
 	return &PlatformUserInfo{
 		FollowersCount: user.User.FollowersCount,
-		FollowingCount: user.User.FollowingCount,
+		LikeCount:      user.User.LikeCount,
 		ArticlesCount:  user.User.ArticlesCount,
 	}, nil
 }
