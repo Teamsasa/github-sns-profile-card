@@ -58,6 +58,9 @@ type PlatformUserInfo struct {
 	FollowingCount int
 	ArticlesCount  int
 	LikeCount      int // Zenn用のフィールド
+	Reputation     int // StackOverflow用のフィールド
+	AnswerCount    int // StackOverflow用のフィールド
+	QuestionCount  int // StackOverflow用のフィールド
 	Rating         int // AtCoder用のフィールド
 }
 
@@ -125,16 +128,24 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 統計情報
 	canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", username), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
-	canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Followers: %d", userInfo.FollowersCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	if platform == "stackoverflow" {
+		canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Reputation: %d", userInfo.Reputation), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	} else {
+		canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Followers: %d", userInfo.FollowersCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	}
 
 	if platform == "zenn" {
 		canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Likes: %d", userInfo.LikeCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	} else if platform == "stackoverflow" {
+		canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Answers: %d", userInfo.AnswerCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else {
 		canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Following: %d", userInfo.FollowingCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
 
 	if platform == "zenn" {
 		canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Articles: %d", userInfo.ArticlesCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	} else if platform == "stackoverflow" {
+		canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Questions: %d", userInfo.QuestionCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else {
 		canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Posts: %d", userInfo.ArticlesCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
@@ -261,6 +272,7 @@ func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
 		}
 	}
 
+	// reputationを取得
 	resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s?site=stackoverflow", username))
 	if err != nil {
 		return nil, err
@@ -269,29 +281,55 @@ func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
 		return nil, fmt.Errorf("fetch failed")
 	}
 	defer resp.Body.Close()
-
-	var response struct {
+	var respReputation struct {
 		Items []struct {
-			Reputation    int `json:"reputation"`
-			AnswerCount   int `json:"answer_count"`
-			QuestionCount int `json:"question_count"`
+			Reputation int `json:"reputation"`
 		} `json:"items"`
 	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&respReputation); err != nil {
 		return nil, err
 	}
 
-	if len(response.Items) == 0 {
-		return nil, fmt.Errorf("user not found")
+	// 回答数を取得
+	resp, err = http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s/answers?pagesize=100&site=stackoverflow", username))
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("fetch failed")
+	}
+	defer resp.Body.Close()
+	var respAnswers struct {
+		Items []struct {
+			Content []interface{} `json:"content"`
+		} `json:"items"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&respAnswers); err != nil {
+		return nil, err
 	}
 
-	user := response.Items[0]
+	// 質問数を取得
+	resp, err = http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s/questions?pagesize=100&site=stackoverflow", username))
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("fetch failed")
+	}
+	defer resp.Body.Close()
+	var respQuestions struct {
+		Items []struct {
+			Content []interface{} `json:"content"`
+		} `json:"items"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&respQuestions); err != nil {
+		return nil, err
+	}
 
 	return &PlatformUserInfo{
-		FollowersCount: user.Reputation,                       // StackOverflowではReputationをFollowersCountとして代用
-		FollowingCount: 0,                                     // StackOverflow APIにはフォロー中のユーザー数がないため、0を返します
-		ArticlesCount:  user.AnswerCount + user.QuestionCount, // 回答数と質問数の合計を投稿数として扱います
+		Reputation:    respReputation.Items[0].Reputation,
+		AnswerCount:   len(respAnswers.Items),
+		QuestionCount: len(respQuestions.Items),
 	}, nil
 }
 
