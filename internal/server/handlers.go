@@ -254,9 +254,19 @@ func fetchLinkedinData(username string) (*PlatformUserInfo, error) {
 }
 
 func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
+
+	for _, c := range username {
+		if c < '0' || c > '9' {
+			return nil, fmt.Errorf("id must be numeric")
+		}
+	}
+
 	resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s?site=stackoverflow", username))
-	if err != nil || resp.StatusCode != http.StatusOK {
+	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("fetch failed")
 	}
 	defer resp.Body.Close()
 
