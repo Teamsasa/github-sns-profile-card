@@ -17,6 +17,9 @@ COPY ./ ./
 # APIサーバーをビルド
 RUN make build
 
+# 環境変数を設定
+ENV PORT=8080
+
 # ポート8080を公開
 EXPOSE 8080
 
