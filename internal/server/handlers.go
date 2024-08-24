@@ -72,7 +72,7 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	canvas.Image(20+strokeWidth, 20+strokeWidth, 80, 80, iconURL)
 
 	// 統計情報
-	if platform == "stackoverflow" {
+	if platform == "stackoverflow" || platform == "note" {
 		canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", userInfo.UserName), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else {
 		canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", username), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
@@ -103,6 +103,8 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Questions: %d", userInfo.QuestionCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 		}
+	} else if platform == "note" {
+		canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Notes: %d", userInfo.ArticlesCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else {
 		canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Posts: %d", userInfo.ArticlesCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
@@ -131,6 +133,8 @@ func fetchUserData(platform, username string) (*model.PlatformUserInfo, error) {
 		return usecase.FetchStackoverflowData(username)
 	case "atcoder":
 		return usecase.FetchAtCoderData(username)
+	case "note":
+		return usecase.FetchNoteData(username)
 	}
 	return nil, fmt.Errorf("platform not supported")
 }

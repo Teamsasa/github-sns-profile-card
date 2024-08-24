@@ -7,6 +7,7 @@ var PlatformIcons = map[string]string{
 	"linkedin":      "/assets/linkedin.png",
 	"stackoverflow": "/assets/stackoverflow.png",
 	"atcoder":       "/assets/atcoder.png",
+	"note":          "/assets/note.png",
 }
 
 var PlatformURLs = map[string]string{
@@ -16,6 +17,7 @@ var PlatformURLs = map[string]string{
 	"linkedin":      "https://linkedin.com/in/",
 	"stackoverflow": "https://stackoverflow.com/users/",
 	"atcoder":       "https://atcoder.jp/users/",
+	"note":          "https://note.com/",
 }
 
 var PlatformColors = map[string]string{
@@ -25,6 +27,7 @@ var PlatformColors = map[string]string{
 	"linkedin":      "#0A66C2",
 	"stackoverflow": "#F48024",
 	"atcoder":       "#000000",
+	"note":          "#00A7AF",
 }
 
 var PlatformBgColors = map[string]string{
@@ -34,6 +37,7 @@ var PlatformBgColors = map[string]string{
 	"linkedin":      "#F4F2EE",
 	"stackoverflow": "#FFFFFB",
 	"atcoder":       "#EBEBEB",
+	"note":          "#F5F5F5",
 }
 
 var PlatformFontColors = map[string]string{
@@ -43,6 +47,7 @@ var PlatformFontColors = map[string]string{
 	"linkedin":      "#000000",
 	"stackoverflow": "#000000",
 	"atcoder":       "#000000",
+	"note":          "#000000",
 }
 
 type PlatformUserInfo struct {
