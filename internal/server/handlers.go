@@ -5,10 +5,9 @@ import (
 	"net/http"
 
 	svg "github.com/ajstarks/svgo"
-	"profile/internal/usecase"
 	"profile/internal/model"
+	"profile/internal/usecase"
 )
-
 
 // 汎用エラーハンドリング関数
 func handleError(w http.ResponseWriter, err error, statusCode int, message string) {
@@ -26,13 +25,13 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	iconURL, exists := PlatformIcons[platform]
+	iconURL, exists := model.PlatformIcons[platform]
 	if !exists {
 		handleError(w, nil, http.StatusBadRequest, "Unknown platform")
 		return
 	}
 
-	urlBase, exists := PlatformURLs[platform]
+	urlBase, exists := model.PlatformURLs[platform]
 	if !exists || username == "" {
 		handleError(w, nil, http.StatusBadRequest, "Unknown platform or empty username")
 		return
@@ -53,7 +52,7 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	height := 120
 	borderRadius := 20
 	strokeWidth := 4
-	textColor := PlatformFontColors[platform]
+	textColor := model.PlatformFontColors[platform]
 	canvas := svg.New(w)
 	canvas.Start(width+(2*strokeWidth), height+(2*strokeWidth))
 	defer canvas.End()
@@ -63,11 +62,11 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 外枠を描画
 	canvas.Rect(strokeWidth, strokeWidth, width, height,
-		fmt.Sprintf("fill:none;rx:%d;ry:%d;stroke:%s;stroke-width:%d", borderRadius, borderRadius, PlatformColors[platform], strokeWidth))
+		fmt.Sprintf("fill:none;rx:%d;ry:%d;stroke:%s;stroke-width:%d", borderRadius, borderRadius, model.PlatformColors[platform], strokeWidth))
 
 	// 背景（角丸の長方形）
 	canvas.Rect(strokeWidth, strokeWidth, width, height,
-		fmt.Sprintf("fill:%s;rx:%d;ry:%d", platformBgColors[platform], borderRadius, borderRadius))
+		fmt.Sprintf("fill:%s;rx:%d;ry:%d", model.PlatformBgColors[platform], borderRadius, borderRadius))
 
 	// アイコン
 	canvas.Image(20+strokeWidth, 20+strokeWidth, 80, 80, iconURL)
@@ -98,20 +97,20 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // 各プラットフォームからデータを取得する関数
-func fetchUserData(platform, username string) (*PlatformUserInfo, error) {
+func fetchUserData(platform, username string) (*model.PlatformUserInfo, error) {
 	switch platform {
 	case "qiita":
-		return fetchQiitaData(username)
+		return usecase.FetchQiitaData(username)
 	case "twitter":
-		return fetchTwitterData(username)
+		return usecase.FetchTwitterData(username)
 	case "zenn":
-		return fetchZennData(username)
+		return usecase.FetchZennData(username)
 	case "linkedin":
-		return fetchLinkedinData(username)
+		return usecase.FetchLinkedinData(username)
 	case "stackoverflow":
-		return fetchStackoverflowData(username)
+		return usecase.FetchStackoverflowData(username)
 	case "atcoder":
-		return fetchAtCoderData(username)
+		return usecase.FetchAtCoderData(username)
 	}
 	return nil, fmt.Errorf("platform not supported")
 }

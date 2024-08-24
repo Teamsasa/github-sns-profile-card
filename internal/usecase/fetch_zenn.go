@@ -7,7 +7,7 @@ import (
 	"profile/internal/model"
 )
 
-func fetchZennData(username string) (*PlatformUserInfo, error) {
+func FetchZennData(username string) (*model.PlatformUserInfo, error) {
 	resp, err := http.Get(fmt.Sprintf("https://zenn.dev/api/users/%s", username))
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func fetchZennData(username string) (*PlatformUserInfo, error) {
 		return nil, err
 	}
 
-	return &PlatformUserInfo{
+	return &model.PlatformUserInfo{
 		FollowersCount: user.User.FollowersCount,
 		LikeCount:      user.User.LikeCount,
 		ArticlesCount:  user.User.ArticlesCount,

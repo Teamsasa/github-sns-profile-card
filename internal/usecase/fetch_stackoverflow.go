@@ -7,7 +7,7 @@ import (
 	"profile/internal/model"
 )
 
-func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
+func FetchStackoverflowData(username string) (*model.PlatformUserInfo, error) {
 	resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s?site=stackoverflow", username))
 	if err != nil || resp.StatusCode != http.StatusOK {
 		return nil, err
@@ -32,7 +32,7 @@ func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
 
 	user := response.Items[0]
 
-	return &PlatformUserInfo{
+	return &model.PlatformUserInfo{
 		FollowersCount: user.Reputation,                       // StackOverflowではReputationをFollowersCountとして代用
 		FollowingCount: 0,                                     // StackOverflow APIにはフォロー中のユーザー数がないため、0を返します
 		ArticlesCount:  user.AnswerCount + user.QuestionCount, // 回答数と質問数の合計を投稿数として扱います

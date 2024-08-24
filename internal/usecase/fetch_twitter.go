@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-"profile/internal/model")
+	"profile/internal/model"
+)
 
-func fetchTwitterData(username string) (*PlatformUserInfo, error) {
+func FetchTwitterData(username string) (*model.PlatformUserInfo, error) {
 	resp, err := http.Get(fmt.Sprintf("https://api.twitter.com/2/users/by/username/%s", username))
 	if err != nil || resp.StatusCode != http.StatusOK {
 		return nil, err
@@ -22,7 +23,7 @@ func fetchTwitterData(username string) (*PlatformUserInfo, error) {
 		return nil, err
 	}
 
-	return &PlatformUserInfo{
+	return &model.PlatformUserInfo{
 		FollowersCount: user.FollowersCount,
 		FollowingCount: user.FolloweesCount,
 		ArticlesCount:  0, // Twitterは投稿数の取得がAPIでサポートされていないため、0を返します

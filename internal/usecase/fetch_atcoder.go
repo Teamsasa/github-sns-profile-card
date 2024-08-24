@@ -9,7 +9,7 @@ import (
 )
 
 // AtCoderのユーザーデータを取得する関数
-func fetchAtCoderData(username string) (*PlatformUserInfo, error) {
+func FetchAtCoderData(username string) (*model.PlatformUserInfo, error) {
 	resp, err := http.Get(fmt.Sprintf("https://atcoder.jp/users/%s", username)) // 仮のURL
 	if err != nil || resp.StatusCode != http.StatusOK {
 		return nil, err
@@ -24,7 +24,7 @@ func fetchAtCoderData(username string) (*PlatformUserInfo, error) {
 		return nil, err
 	}
 
-	return &PlatformUserInfo{
+	return &model.PlatformUserInfo{
 		Rating: user.Rating,
 	}, nil
 }

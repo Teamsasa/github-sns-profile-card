@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"profile/internal/model"
 )
 
 // Qiitaのユーザーデータを取得する関数
-func fetchQiitaData(username string) (*PlatformUserInfo, error) {
+func FetchQiitaData(username string) (*model.PlatformUserInfo, error) {
 	resp, err := http.Get(fmt.Sprintf("https://qiita.com/api/v2/users/%s", username))
 	if err != nil || resp.StatusCode != http.StatusOK {
 		return nil, err
@@ -24,7 +25,7 @@ func fetchQiitaData(username string) (*PlatformUserInfo, error) {
 		return nil, err
 	}
 
-	return &PlatformUserInfo{
+	return &model.PlatformUserInfo{
 		FollowersCount: user.FollowersCount,
 		FollowingCount: user.FolloweesCount,
 		ArticlesCount:  user.ArticlesCount,
