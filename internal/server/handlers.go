@@ -144,7 +144,7 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Likes: %d", userInfo.LikeCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else if platform == "stackoverflow" {
 		if userInfo.AnswerCount >= 100 {
-			canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprint("Answers: 100+", fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor)))
+			canvas.Text(130+strokeWidth, 75+strokeWidth, "Answers: 100+", fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 		} else {
 			canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Answers: %d", userInfo.AnswerCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 		}
@@ -156,7 +156,7 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Articles: %d", userInfo.ArticlesCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else if platform == "stackoverflow" {
 		if userInfo.QuestionCount >= 100 {
-			canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprint("Questions: 100+", fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor)))
+			canvas.Text(130+strokeWidth, 100+strokeWidth, "Questions: 100+", fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 		} else {
 			canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Questions: %d", userInfo.QuestionCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 		}
