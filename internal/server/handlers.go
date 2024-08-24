@@ -318,6 +318,11 @@ func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
 			errChan <- err
 			return
 		}
+		// ユーザーが削除された場合？にステータスコードは200だが、itemsが空になる
+		if len(respReputation.Items) == 0 {
+			errChan <- fmt.Errorf("user not found")
+			return
+		}
 		reputationChan <- struct {
 			Reputation  int
 			DisplayName string
