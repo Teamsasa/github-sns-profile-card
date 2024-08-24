@@ -58,11 +58,12 @@ type PlatformUserInfo struct {
 	FollowersCount int
 	FollowingCount int
 	ArticlesCount  int
-	LikeCount      int // Zenn用のフィールド
-	Reputation     int // StackOverflow用のフィールド
-	AnswerCount    int // StackOverflow用のフィールド
-	QuestionCount  int // StackOverflow用のフィールド
-	Rating         int // AtCoder用のフィールド
+	LikeCount      int    // Zenn用のフィールド
+	UserName       string // Stackoverflow用のフィールド
+	Reputation     int    // StackOverflow用のフィールド
+	AnswerCount    int    // StackOverflow用のフィールド
+	QuestionCount  int    // StackOverflow用のフィールド
+	Rating         int    // AtCoder用のフィールド
 }
 
 // 汎用エラーハンドリング関数
@@ -128,7 +129,11 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	canvas.Image(20+strokeWidth, 20+strokeWidth, 80, 80, iconURL)
 
 	// 統計情報
-	canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", username), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	if platform == "stackoverflow" {
+		canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", userInfo.UserName), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	} else {
+		canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", username), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	}
 	if platform == "stackoverflow" {
 		canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Reputation: %d", userInfo.Reputation), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else {
@@ -281,7 +286,10 @@ func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
 	}
 
 	var wg sync.WaitGroup
-	reputationChan := make(chan int)
+	reputationChan := make(chan struct {
+		Reputation  int
+		DisplayName string
+	})
 	answerCountChan := make(chan int)
 	questionCountChan := make(chan int)
 	errChan := make(chan error, 3)
@@ -302,14 +310,21 @@ func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
 		}
 		var respReputation struct {
 			Items []struct {
-				Reputation int `json:"reputation"`
+				Reputation  int    `json:"reputation"`
+				DisplayName string `json:"display_name"`
 			} `json:"items"`
 		}
 		if err := json.NewDecoder(resp.Body).Decode(&respReputation); err != nil {
 			errChan <- err
 			return
 		}
-		reputationChan <- respReputation.Items[0].Reputation
+		reputationChan <- struct {
+			Reputation  int
+			DisplayName string
+		}{
+			Reputation:  respReputation.Items[0].Reputation,
+			DisplayName: respReputation.Items[0].DisplayName,
+		}
 	}()
 
 	// 回答数を取得
@@ -373,11 +388,13 @@ func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
 	}()
 
 	var reputation, answerCount, questionCount int
+	var displayName string
 	for {
 		select {
 		case rep, ok := <-reputationChan:
 			if ok {
-				reputation = rep
+				reputation = rep.Reputation
+				displayName = rep.DisplayName
 			}
 		case ans, ok := <-answerCountChan:
 			if ok {
@@ -398,6 +415,7 @@ func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
 	}
 
 	return &PlatformUserInfo{
+		UserName:      displayName,
 		Reputation:    reputation,
 		AnswerCount:   answerCount,
 		QuestionCount: questionCount,
