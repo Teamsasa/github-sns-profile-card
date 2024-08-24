@@ -60,13 +60,8 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	// リンクの開始
 	canvas.Link(url, "")
 
-	// 外枠を描画
-	canvas.Rect(strokeWidth, strokeWidth, width, height,
-		fmt.Sprintf("fill:none;rx:%d;ry:%d;stroke:%s;stroke-width:%d", borderRadius, borderRadius, model.PlatformColors[platform], strokeWidth))
-
-	// 背景（角丸の長方形）
-	canvas.Rect(strokeWidth, strokeWidth, width, height,
-		fmt.Sprintf("fill:%s;rx:%d;ry:%d", model.PlatformBgColors[platform], borderRadius, borderRadius))
+	// 外枠と背景（角丸の長方形）を描画
+	fmt.Fprintf(canvas.Writer, `<rect x="%d" y="%d" width="%d" height="%d" rx="%d" ry="%d" fill="%s" stroke="%s" stroke-width="%d" />`, strokeWidth, strokeWidth, width, height, borderRadius, borderRadius, model.PlatformBgColors[platform], model.PlatformColors[platform], strokeWidth)
 
 	// アイコン
 	canvas.Image(20+strokeWidth, 20+strokeWidth, 80, 80, iconURL)
