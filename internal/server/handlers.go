@@ -112,25 +112,25 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	canvas.Link(url, "")
 
 	// 外枠を描画
-	canvas.Rect(strokeWidth, strokeWidth, width, height, 
+	canvas.Rect(strokeWidth, strokeWidth, width, height,
 		fmt.Sprintf("fill:none;rx:%d;ry:%d;stroke:%s;stroke-width:%d", borderRadius, borderRadius, platformColors[platform], strokeWidth))
 
 	// 背景（角丸の長方形）
-	canvas.Rect(strokeWidth, strokeWidth, width, height, 
+	canvas.Rect(strokeWidth, strokeWidth, width, height,
 		fmt.Sprintf("fill:%s;rx:%d;ry:%d", platformBgColors[platform], borderRadius, borderRadius))
 
 	// アイコン
-	canvas.Image(20 + strokeWidth, 20 + strokeWidth, 80, 80, iconURL)
+	canvas.Image(20+strokeWidth, 20+strokeWidth, 80, 80, iconURL)
 
 	// 統計情報
-	canvas.Text(130 + strokeWidth, 25 + strokeWidth, fmt.Sprintf("@%s", username), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
-	canvas.Text(130 + strokeWidth, 50 + strokeWidth, fmt.Sprintf("Followers: %d", userInfo.FollowersCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
-	canvas.Text(130 + strokeWidth, 75 + strokeWidth, fmt.Sprintf("Following: %d", userInfo.FollowingCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
-	canvas.Text(130 + strokeWidth, 100 + strokeWidth, fmt.Sprintf("Posts: %d", userInfo.ArticlesCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", username), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Followers: %d", userInfo.FollowersCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Following: %d", userInfo.FollowingCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Posts: %d", userInfo.ArticlesCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 
 	// AtCoderの場合はRatingも表示
 	if platform == "atcoder" {
-		canvas.Text(120 + strokeWidth, 130 + strokeWidth, fmt.Sprintf("Rating: %d", userInfo.Rating), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+		canvas.Text(120+strokeWidth, 130+strokeWidth, fmt.Sprintf("Rating: %d", userInfo.Rating), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
 
 	// リンクの終了
@@ -216,6 +216,9 @@ func fetchZennData(username string) (*PlatformUserInfo, error) {
 		ArticlesCount  int `json:"articles_count"`
 	}
 
+	fmt.Println(resp.Body)
+	fmt.Println(user)
+
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
 		return nil, err
 	}
@@ -242,8 +245,8 @@ func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
 
 	var response struct {
 		Items []struct {
-			Reputation   int `json:"reputation"`
-			AnswerCount  int `json:"answer_count"`
+			Reputation    int `json:"reputation"`
+			AnswerCount   int `json:"answer_count"`
 			QuestionCount int `json:"question_count"`
 		} `json:"items"`
 	}
@@ -259,8 +262,8 @@ func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
 	user := response.Items[0]
 
 	return &PlatformUserInfo{
-		FollowersCount: user.Reputation,   // StackOverflowではReputationをFollowersCountとして代用
-		FollowingCount: 0,                 // StackOverflow APIにはフォロー中のユーザー数がないため、0を返します
+		FollowersCount: user.Reputation,                       // StackOverflowではReputationをFollowersCountとして代用
+		FollowingCount: 0,                                     // StackOverflow APIにはフォロー中のユーザー数がないため、0を返します
 		ArticlesCount:  user.AnswerCount + user.QuestionCount, // 回答数と質問数の合計を投稿数として扱います
 	}, nil
 }
