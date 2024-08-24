@@ -9,6 +9,7 @@ var PlatformIcons = map[string]string{
 	"atcoder":       "/assets/atcoder.png",
 	"note":          "/assets/note.png",
 	"youtube":       "/assets/youtube.png",
+	"instagram":     "/assets/instagram.png",
 }
 
 var PlatformURLs = map[string]string{
@@ -20,6 +21,7 @@ var PlatformURLs = map[string]string{
 	"atcoder":       "https://atcoder.jp/users/",
 	"note":          "https://note.com/",
 	"youtube":       "https://youtube.com/",
+	"instagram":     "https://instagram.com/",
 }
 
 var PlatformColors = map[string]string{
@@ -31,6 +33,7 @@ var PlatformColors = map[string]string{
 	"atcoder":       "#000000",
 	"note":          "#00A7AF",
 	"youtube":       "#FF0000",
+	"instagram":     "#E4405F",
 }
 
 var PlatformBgColors = map[string]string{
@@ -42,6 +45,7 @@ var PlatformBgColors = map[string]string{
 	"atcoder":       "#EBEBEB",
 	"note":          "#F5F5F5",
 	"youtube":       "#FFFFFF",
+	"instagram":     "#F5F5F5",
 }
 
 var PlatformFontColors = map[string]string{
@@ -53,6 +57,7 @@ var PlatformFontColors = map[string]string{
 	"atcoder":       "#000000",
 	"note":          "#000000",
 	"youtube":       "#000000",
+	"instagram":     "#000000",
 }
 
 type PlatformUserInfo struct {
