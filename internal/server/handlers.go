@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 
 	svg "github.com/ajstarks/svgo"
 )
@@ -265,71 +266,133 @@ func fetchLinkedinData(username string) (*PlatformUserInfo, error) {
 }
 
 func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
-
 	for _, c := range username {
 		if c < '0' || c > '9' {
 			return nil, fmt.Errorf("id must be numeric")
 		}
 	}
 
+	var wg sync.WaitGroup
+	reputationChan := make(chan int)
+	answerCountChan := make(chan int)
+	questionCountChan := make(chan int)
+	errChan := make(chan error, 3)
+
 	// reputationを取得
-	resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s?site=stackoverflow", username))
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("fetch failed")
-	}
-	defer resp.Body.Close()
-	var respReputation struct {
-		Items []struct {
-			Reputation int `json:"reputation"`
-		} `json:"items"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&respReputation); err != nil {
-		return nil, err
-	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s?site=stackoverflow", username))
+		if err != nil {
+			errChan <- err
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			errChan <- fmt.Errorf("fetch failed")
+			return
+		}
+		var respReputation struct {
+			Items []struct {
+				Reputation int `json:"reputation"`
+			} `json:"items"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&respReputation); err != nil {
+			errChan <- err
+			return
+		}
+		reputationChan <- respReputation.Items[0].Reputation
+	}()
 
 	// 回答数を取得
-	resp, err = http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s/answers?pagesize=100&site=stackoverflow", username))
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("fetch failed")
-	}
-	defer resp.Body.Close()
-	var respAnswers struct {
-		Items []struct {
-			Content []interface{} `json:"content"`
-		} `json:"items"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&respAnswers); err != nil {
-		return nil, err
-	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s/answers?pagesize=100&site=stackoverflow", username))
+		if err != nil {
+			errChan <- err
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			errChan <- fmt.Errorf("fetch failed")
+			return
+		}
+		var respAnswers struct {
+			Items []struct {
+				Content []interface{} `json:"content"`
+			} `json:"items"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&respAnswers); err != nil {
+			errChan <- err
+			return
+		}
+		answerCountChan <- len(respAnswers.Items)
+	}()
 
 	// 質問数を取得
-	resp, err = http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s/questions?pagesize=100&site=stackoverflow", username))
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("fetch failed")
-	}
-	defer resp.Body.Close()
-	var respQuestions struct {
-		Items []struct {
-			Content []interface{} `json:"content"`
-		} `json:"items"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&respQuestions); err != nil {
-		return nil, err
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s/questions?pagesize=100&site=stackoverflow", username))
+		if err != nil {
+			errChan <- err
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			errChan <- fmt.Errorf("fetch failed")
+			return
+		}
+		var respQuestions struct {
+			Items []struct {
+				Content []interface{} `json:"content"`
+			} `json:"items"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&respQuestions); err != nil {
+			errChan <- err
+			return
+		}
+		questionCountChan <- len(respQuestions.Items)
+	}()
+
+	go func() {
+		wg.Wait()
+		close(reputationChan)
+		close(answerCountChan)
+		close(questionCountChan)
+		close(errChan)
+	}()
+
+	var reputation, answerCount, questionCount int
+	for {
+		select {
+		case rep, ok := <-reputationChan:
+			if ok {
+				reputation = rep
+			}
+		case ans, ok := <-answerCountChan:
+			if ok {
+				answerCount = ans
+			}
+		case ques, ok := <-questionCountChan:
+			if ok {
+				questionCount = ques
+			}
+		case err := <-errChan:
+			if err != nil {
+				return nil, err
+			}
+		}
+		if reputation != 0 && answerCount != 0 && questionCount != 0 {
+			break
+		}
 	}
 
 	return &PlatformUserInfo{
-		Reputation:    respReputation.Items[0].Reputation,
-		AnswerCount:   len(respAnswers.Items),
-		QuestionCount: len(respQuestions.Items),
+		Reputation:    reputation,
+		AnswerCount:   answerCount,
+		QuestionCount: questionCount,
 	}, nil
 }
 
