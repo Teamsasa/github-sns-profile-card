@@ -41,6 +41,7 @@ func FetchYoutubeData(username string) (*model.PlatformUserInfo, error) {
 		Items []struct {
 			Snippet struct {
 				Username string `json:"title"`
+				CustomUrl string `json:"customUrl"`
 			} `json:"snippet"`
 			Statistics struct {
 				SubscriberCount string `json:"subscriberCount"`
@@ -64,12 +65,14 @@ func FetchYoutubeData(username string) (*model.PlatformUserInfo, error) {
 
 	stats := result.Items[0].Statistics
 
+	customURL := result.Items[0].Snippet.CustomUrl
 	username = result.Items[0].Snippet.Username
 	subscriberCount, _ := strconv.Atoi(stats.SubscriberCount)
 	viewCount, _ := strconv.Atoi(stats.ViewCount)
 	videoCount, _ := strconv.Atoi(stats.VideoCount)
 
 	platformUserInfo := &model.PlatformUserInfo{
+		CustomURL:      customURL,
 		UserName:       username,
 		FollowersCount: subscriberCount,
 		TotalVideos:    videoCount,
