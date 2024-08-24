@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 
 	svg "github.com/ajstarks/svgo"
 )
@@ -57,8 +58,12 @@ type PlatformUserInfo struct {
 	FollowersCount int
 	FollowingCount int
 	ArticlesCount  int
-	LikeCount      int // Zenn用のフィールド
-	Rating         int // AtCoder用のフィールド
+	LikeCount      int    // Zenn用のフィールド
+	UserName       string // Stackoverflow用のフィールド
+	Reputation     int    // StackOverflow用のフィールド
+	AnswerCount    int    // StackOverflow用のフィールド
+	QuestionCount  int    // StackOverflow用のフィールド
+	Rating         int    // AtCoder用のフィールド
 }
 
 // 汎用エラーハンドリング関数
@@ -124,17 +129,37 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	canvas.Image(20+strokeWidth, 20+strokeWidth, 80, 80, iconURL)
 
 	// 統計情報
-	canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", username), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
-	canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Followers: %d", userInfo.FollowersCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	if platform == "stackoverflow" {
+		canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", userInfo.UserName), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	} else {
+		canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", username), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	}
+	if platform == "stackoverflow" {
+		canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Reputation: %s", formatNumber(userInfo.Reputation)), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	} else {
+		canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Followers: %d", userInfo.FollowersCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	}
 
 	if platform == "zenn" {
 		canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Likes: %d", userInfo.LikeCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	} else if platform == "stackoverflow" {
+		if userInfo.AnswerCount >= 100 {
+			canvas.Text(130+strokeWidth, 75+strokeWidth, "Answers: 100+", fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+		} else {
+			canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Answers: %d", userInfo.AnswerCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+		}
 	} else {
 		canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Following: %d", userInfo.FollowingCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
 
 	if platform == "zenn" {
 		canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Articles: %d", userInfo.ArticlesCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	} else if platform == "stackoverflow" {
+		if userInfo.QuestionCount >= 100 {
+			canvas.Text(130+strokeWidth, 100+strokeWidth, "Questions: 100+", fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+		} else {
+			canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Questions: %d", userInfo.QuestionCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+		}
 	} else {
 		canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Posts: %d", userInfo.ArticlesCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
@@ -254,34 +279,151 @@ func fetchLinkedinData(username string) (*PlatformUserInfo, error) {
 }
 
 func fetchStackoverflowData(username string) (*PlatformUserInfo, error) {
-	resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s?site=stackoverflow", username))
-	if err != nil || resp.StatusCode != http.StatusOK {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	var response struct {
-		Items []struct {
-			Reputation    int `json:"reputation"`
-			AnswerCount   int `json:"answer_count"`
-			QuestionCount int `json:"question_count"`
-		} `json:"items"`
+	for _, c := range username {
+		if c < '0' || c > '9' {
+			return nil, fmt.Errorf("id must be numeric")
+		}
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil, err
-	}
+	var wg sync.WaitGroup
+	reputationChan := make(chan struct {
+		Reputation  int
+		DisplayName string
+	})
+	answerCountChan := make(chan int)
+	questionCountChan := make(chan int)
+	errChan := make(chan error, 3)
 
-	if len(response.Items) == 0 {
-		return nil, fmt.Errorf("user not found")
-	}
+	// reputationを取得
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s?site=stackoverflow", username))
+		if err != nil {
+			errChan <- err
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			errChan <- fmt.Errorf("fetch failed")
+			return
+		}
+		var respReputation struct {
+			Items []struct {
+				Reputation  int    `json:"reputation"`
+				DisplayName string `json:"display_name"`
+			} `json:"items"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&respReputation); err != nil {
+			errChan <- err
+			return
+		}
+		// ユーザーが削除された場合？にステータスコードは200だが、itemsが空になる
+		if len(respReputation.Items) == 0 {
+			errChan <- fmt.Errorf("user not found")
+			return
+		}
+		reputationChan <- struct {
+			Reputation  int
+			DisplayName string
+		}{
+			Reputation:  respReputation.Items[0].Reputation,
+			DisplayName: respReputation.Items[0].DisplayName,
+		}
+	}()
 
-	user := response.Items[0]
+	// 回答数を取得
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s/answers?pagesize=100&site=stackoverflow", username))
+		if err != nil {
+			errChan <- err
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			errChan <- fmt.Errorf("fetch failed")
+			return
+		}
+		var respAnswers struct {
+			Items []struct {
+				Content []interface{} `json:"content"`
+			} `json:"items"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&respAnswers); err != nil {
+			errChan <- err
+			return
+		}
+		answerCountChan <- len(respAnswers.Items)
+	}()
+
+	// 質問数を取得
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s/questions?pagesize=100&site=stackoverflow", username))
+		if err != nil {
+			errChan <- err
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			errChan <- fmt.Errorf("fetch failed")
+			return
+		}
+		var respQuestions struct {
+			Items []struct {
+				Content []interface{} `json:"content"`
+			} `json:"items"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&respQuestions); err != nil {
+			errChan <- err
+			return
+		}
+		questionCountChan <- len(respQuestions.Items)
+	}()
+
+	go func() {
+		wg.Wait()
+		close(reputationChan)
+		close(answerCountChan)
+		close(questionCountChan)
+		close(errChan)
+	}()
+
+	var reputation, answerCount, questionCount int
+	var displayName string
+	for {
+		select {
+		case rep, ok := <-reputationChan:
+			if ok {
+				reputation = rep.Reputation
+				displayName = rep.DisplayName
+			}
+		case ans, ok := <-answerCountChan:
+			if ok {
+				answerCount = ans
+			}
+		case ques, ok := <-questionCountChan:
+			if ok {
+				questionCount = ques
+			}
+		case err := <-errChan:
+			if err != nil {
+				return nil, err
+			}
+		}
+		if reputation != 0 && answerCount != 0 && questionCount != 0 {
+			break
+		}
+	}
 
 	return &PlatformUserInfo{
-		FollowersCount: user.Reputation,                       // StackOverflowではReputationをFollowersCountとして代用
-		FollowingCount: 0,                                     // StackOverflow APIにはフォロー中のユーザー数がないため、0を返します
-		ArticlesCount:  user.AnswerCount + user.QuestionCount, // 回答数と質問数の合計を投稿数として扱います
+		UserName:      displayName,
+		Reputation:    reputation,
+		AnswerCount:   answerCount,
+		QuestionCount: questionCount,
 	}, nil
 }
 
@@ -304,4 +446,17 @@ func fetchAtCoderData(username string) (*PlatformUserInfo, error) {
 	return &PlatformUserInfo{
 		Rating: user.Rating,
 	}, nil
+}
+
+func formatNumber(n int) string {
+	switch {
+	case n >= 1_000_000_000:
+		return fmt.Sprintf("%.1fB", float64(n)/1_000_000_000)
+	case n >= 1_000_000:
+		return fmt.Sprintf("%.1fM", float64(n)/1_000_000)
+	case n >= 1_000:
+		return fmt.Sprintf("%.1fK", float64(n)/1_000)
+	default:
+		return fmt.Sprintf("%d", n)
+	}
 }
