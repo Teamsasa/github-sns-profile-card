@@ -135,7 +135,7 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", username), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
 	if platform == "stackoverflow" {
-		canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Reputation: %d", userInfo.Reputation), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+		canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Reputation: %s", formatNumber(userInfo.Reputation)), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else {
 		canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Followers: %d", userInfo.FollowersCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
@@ -441,4 +441,17 @@ func fetchAtCoderData(username string) (*PlatformUserInfo, error) {
 	return &PlatformUserInfo{
 		Rating: user.Rating,
 	}, nil
+}
+
+func formatNumber(n int) string {
+	switch {
+	case n >= 1_000_000_000:
+		return fmt.Sprintf("%.1fB", float64(n)/1_000_000_000)
+	case n >= 1_000_000:
+		return fmt.Sprintf("%.1fM", float64(n)/1_000_000)
+	case n >= 1_000:
+		return fmt.Sprintf("%.1fK", float64(n)/1_000)
+	default:
+		return fmt.Sprintf("%d", n)
+	}
 }
