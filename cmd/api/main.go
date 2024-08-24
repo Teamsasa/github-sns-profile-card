@@ -1,7 +1,7 @@
 package main
 
 import (
-	"aaa/internal/server"
+	"profile/internal/server"
 	"fmt"
 )
 
