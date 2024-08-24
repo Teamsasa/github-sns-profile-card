@@ -26,6 +26,33 @@ var platformURLs = map[string]string{
 	"atcoder":       "https://atcoder.jp/usres/",
 }
 
+var platformColors = map[string]string{
+	"zenn":          "#3EA8FF",
+	"qiita":         "#55C500",
+	"twitter":       "#FFFFFF",
+	"linkedin":      "#0A66C2",
+	"stackoverflow": "#F48024",
+	"atcoder":       "#000000",
+}
+
+var platformBgColors = map[string]string{
+	"zenn":          "#F1F5F9",
+	"qiita":         "#F5F6F6",
+	"twitter":       "#000000",
+	"linkedin":      "##F4F2EE",
+	"stackoverflow": "#FFFFFB",
+	"atcoder":       "#EBEBEB",
+}
+
+var platformFontColors = map[string]string{
+	"zenn":          "#000000",
+	"qiita":         "#000000",
+	"twitter":       "#FFFFFF",
+	"linkedin":      "#000000",
+	"stackoverflow": "#000000",
+	"atcoder":       "#000000",
+}
+
 type PlatformUserInfo struct {
 	FollowersCount int
 	FollowingCount int
@@ -72,30 +99,38 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	// SVGの生成
 	w.Header().Set("Content-Type", "image/svg+xml")
 
-	width := 300
-	height := 150
+	width := 250
+	height := 120
+	borderRadius := 20
+	strokeWidth := 4
+	textColor := platformFontColors[platform]
 	canvas := svg.New(w)
-	canvas.Start(width, height)
+	canvas.Start(width+(2*strokeWidth), height+(2*strokeWidth))
 	defer canvas.End()
 
 	// リンクの開始
 	canvas.Link(url, "")
 
-	// 背景
-	canvas.Rect(0, 0, width, height, "fill:#f0f0f0")
+	// 外枠を描画
+	canvas.Rect(strokeWidth, strokeWidth, width, height, 
+		fmt.Sprintf("fill:none;rx:%d;ry:%d;stroke:%s;stroke-width:%d", borderRadius, borderRadius, platformColors[platform], strokeWidth))
+
+	// 背景（角丸の長方形）
+	canvas.Rect(strokeWidth, strokeWidth, width, height, 
+		fmt.Sprintf("fill:%s;rx:%d;ry:%d", platformBgColors[platform], borderRadius, borderRadius))
 
 	// アイコン
-	canvas.Image(10, 10, 80, 80, iconURL)
+	canvas.Image(20 + strokeWidth, 20 + strokeWidth, 80, 80, iconURL)
 
 	// 統計情報
-	canvas.Text(120, 30, fmt.Sprintf("@%s", username), "font-family:Arial;font-size:14px")
-	canvas.Text(120, 55, fmt.Sprintf("Followers: %d", userInfo.FollowersCount), "font-family:Arial;font-size:14px")
-	canvas.Text(120, 80, fmt.Sprintf("Following: %d", userInfo.FollowingCount), "font-family:Arial;font-size:14px")
-	canvas.Text(120, 105, fmt.Sprintf("Posts: %d", userInfo.ArticlesCount), "font-family:Arial;font-size:14px")
+	canvas.Text(130 + strokeWidth, 25 + strokeWidth, fmt.Sprintf("@%s", username), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	canvas.Text(130 + strokeWidth, 50 + strokeWidth, fmt.Sprintf("Followers: %d", userInfo.FollowersCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	canvas.Text(130 + strokeWidth, 75 + strokeWidth, fmt.Sprintf("Following: %d", userInfo.FollowingCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	canvas.Text(130 + strokeWidth, 100 + strokeWidth, fmt.Sprintf("Posts: %d", userInfo.ArticlesCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 
 	// AtCoderの場合はRatingも表示
 	if platform == "atcoder" {
-		canvas.Text(120, 130, fmt.Sprintf("Rating: %d", userInfo.Rating), "font-family:Arial;font-size:14px")
+		canvas.Text(120 + strokeWidth, 130 + strokeWidth, fmt.Sprintf("Rating: %d", userInfo.Rating), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
 
 	// リンクの終了
