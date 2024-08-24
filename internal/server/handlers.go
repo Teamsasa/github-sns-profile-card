@@ -206,8 +206,11 @@ func fetchTwitterData(username string) (*PlatformUserInfo, error) {
 
 func fetchZennData(username string) (*PlatformUserInfo, error) {
 	resp, err := http.Get(fmt.Sprintf("https://zenn.dev/api/users/%s", username))
-	if err != nil || resp.StatusCode != http.StatusOK {
+	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("user not found")
 	}
 	defer resp.Body.Close()
 
