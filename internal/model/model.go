@@ -69,7 +69,9 @@ type PlatformUserInfo struct {
 	Reputation     int    // StackOverflow用のフィールド
 	AnswerCount    int    // StackOverflow用のフィールド
 	QuestionCount  int    // StackOverflow用のフィールド
+	Ranking        int    // AtCoder用のフィールド
 	Rating         int    // AtCoder用のフィールド
+	RatedMatches   int    // AtCoder用のフィールド
 	CustomURL      string // Youtube用のフィールド
 	TotalVideos    int    // Youtube用のフィールド
 	TotalViewCount int    // Youtube用のフィールド
