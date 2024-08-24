@@ -79,6 +79,8 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if platform == "stackoverflow" {
 		canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Reputation: %s", usecase.FormatNumber(userInfo.Reputation)), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	} else if platform == "atcoder" {
+		canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Ranking: %d", userInfo.Ranking), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else {
 		canvas.Text(130+strokeWidth, 50+strokeWidth, fmt.Sprintf("Followers: %d", userInfo.FollowersCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
@@ -91,8 +93,10 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Answers: %d", userInfo.AnswerCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 		}
-		} else if platform == "youtube" {
-			canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Videos: %d", userInfo.TotalVideos), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	} else if platform == "youtube" {
+		canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Videos: %d", userInfo.TotalVideos), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	} else if platform == "atcoder" {
+		canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Rating: %d", userInfo.Rating), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else {
 		canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Following: %d", userInfo.FollowingCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
@@ -109,13 +113,10 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Views: %d", userInfo.TotalViewCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else if platform == "note" {
 		canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Notes: %d", userInfo.ArticlesCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	} else if platform == "atcoder" {
+		canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Matches: %d", userInfo.RatedMatches), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else {
 		canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Posts: %d", userInfo.ArticlesCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
-	}
-
-	// AtCoderの場合はRatingも表示
-	if platform == "atcoder" {
-		canvas.Text(120+strokeWidth, 130+strokeWidth, fmt.Sprintf("Rating: %d", userInfo.Rating), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
 
 	// リンクの終了
