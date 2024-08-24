@@ -17,6 +17,15 @@ var platformIcons = map[string]string{
 	"atcoder":       "/assets/atcoder.png",
 }
 
+var platformURLs = map[string]string{
+	"zenn":          "https://zenn.dev/",
+	"qiita":         "https://qiita.com/",
+	"twitter":       "https://x.com/",
+	"linkedin":      "https://linkedin.com/in/",
+	"stackoverflow": "https://stackoverflow.com/users/",
+	"atcoder":       "https://atcoder.jp/usres/",
+}
+
 type PlatformUserInfo struct {
 	FollowersCount int
 	FollowingCount int
@@ -46,6 +55,14 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	urlBase, exists := platformURLs[platform]
+	if !exists || username == "" {
+		handleError(w, nil, http.StatusBadRequest, "Unknown platform or empty username")
+		return
+	}
+
+	url := urlBase + username
+
 	userInfo, err := fetchUserData(platform, username)
 	if err != nil {
 		handleError(w, err, http.StatusInternalServerError, fmt.Sprintf("Failed to fetch data from %s", platform))
@@ -61,6 +78,9 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	canvas.Start(width, height)
 	defer canvas.End()
 
+	// リンクの開始
+	canvas.Link(url, "")
+
 	// 背景
 	canvas.Rect(0, 0, width, height, "fill:#f0f0f0")
 
@@ -75,8 +95,11 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 
 	// AtCoderの場合はRatingも表示
 	if platform == "atcoder" {
-		canvas.Text(120, 105, fmt.Sprintf("Rating: %d", userInfo.Rating), "font-family:Arial;font-size:14px")
+		canvas.Text(120, 130, fmt.Sprintf("Rating: %d", userInfo.Rating), "font-family:Arial;font-size:14px")
 	}
+
+	// リンクの終了
+	canvas.LinkEnd()
 }
 
 // 各プラットフォームからデータを取得する関数
