@@ -37,12 +37,17 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url := urlBase + username
-
 	userInfo, err := fetchUserData(platform, username)
 	if err != nil {
 		handleError(w, err, http.StatusInternalServerError, fmt.Sprintf("Failed to fetch data from %s", platform))
 		return
+	}
+
+	var url string
+	if platform == "youtube" {
+		url = urlBase + userInfo.CustomURL
+	} else {
+		url = urlBase + username
 	}
 
 	// SVGの生成
@@ -67,8 +72,8 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	canvas.Image(20+strokeWidth, 20+strokeWidth, 80, 80, iconURL)
 
 	// 統計情報
-	if platform == "stackoverflow" || platform == "note" {
-		canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", userInfo.UserName), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
+	if platform == "stackoverflow" || platform == "note" || platform == "youtube" {
+		canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf(userInfo.UserName), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else {
 		canvas.Text(130+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", username), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
@@ -86,6 +91,8 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Answers: %d", userInfo.AnswerCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 		}
+		} else if platform == "youtube" {
+			canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Videos: %d", userInfo.TotalVideos), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else {
 		canvas.Text(130+strokeWidth, 75+strokeWidth, fmt.Sprintf("Following: %d", userInfo.FollowingCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	}
@@ -98,6 +105,8 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Questions: %d", userInfo.QuestionCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 		}
+	} else if platform == "youtube" {
+		canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Views: %d", userInfo.TotalViewCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else if platform == "note" {
 		canvas.Text(130+strokeWidth, 100+strokeWidth, fmt.Sprintf("Notes: %d", userInfo.ArticlesCount), fmt.Sprintf("font-family:Arial;font-size:14px;fill:%s", textColor))
 	} else {
@@ -130,6 +139,8 @@ func fetchUserData(platform, username string) (*model.PlatformUserInfo, error) {
 		return usecase.FetchAtCoderData(username)
 	case "note":
 		return usecase.FetchNoteData(username)
+	case "youtube":
+		return usecase.FetchYoutubeData(username)
 	}
 	return nil, fmt.Errorf("platform not supported")
 }

@@ -8,6 +8,7 @@ var PlatformIcons = map[string]string{
 	"stackoverflow": "/assets/stackoverflow.png",
 	"atcoder":       "/assets/atcoder.png",
 	"note":          "/assets/note.png",
+	"youtube":       "/assets/youtube.png",
 }
 
 var PlatformURLs = map[string]string{
@@ -18,6 +19,7 @@ var PlatformURLs = map[string]string{
 	"stackoverflow": "https://stackoverflow.com/users/",
 	"atcoder":       "https://atcoder.jp/users/",
 	"note":          "https://note.com/",
+	"youtube":       "https://youtube.com/",
 }
 
 var PlatformColors = map[string]string{
@@ -28,6 +30,7 @@ var PlatformColors = map[string]string{
 	"stackoverflow": "#F48024",
 	"atcoder":       "#000000",
 	"note":          "#00A7AF",
+	"youtube":       "#FF0000",
 }
 
 var PlatformBgColors = map[string]string{
@@ -38,6 +41,7 @@ var PlatformBgColors = map[string]string{
 	"stackoverflow": "#FFFFFB",
 	"atcoder":       "#EBEBEB",
 	"note":          "#F5F5F5",
+	"youtube":       "#FFFFFF",
 }
 
 var PlatformFontColors = map[string]string{
@@ -48,6 +52,7 @@ var PlatformFontColors = map[string]string{
 	"stackoverflow": "#000000",
 	"atcoder":       "#000000",
 	"note":          "#000000",
+	"youtube":       "#000000",
 }
 
 type PlatformUserInfo struct {
@@ -60,4 +65,7 @@ type PlatformUserInfo struct {
 	AnswerCount    int    // StackOverflow用のフィールド
 	QuestionCount  int    // StackOverflow用のフィールド
 	Rating         int    // AtCoder用のフィールド
+	CustomURL      string // Youtube用のフィールド
+	TotalVideos    int    // Youtube用のフィールド
+	TotalViewCount int    // Youtube用のフィールド
 }
