@@ -5,7 +5,7 @@
    <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=zenn&userid=zenn"/>
    <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=qiita&userid=Qiita"/>
    <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=stackoverflow&userid=1"/>
-   <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=youtube&userid=UCrXUsMBcfTVqwAS7DKg9C0Q"/>
+   <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=youtube&userid=UCBR8-60-B28hp2BmDPdntcQ"/>
    <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=note&userid=info"/>
    <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=atcoder&userid=chokudai"/>
 </div>
@@ -49,9 +49,9 @@
     - width(default = 260)
 
 ### YouTube
-<img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=youtube&userid=UCrXUsMBcfTVqwAS7DKg9C0Q&width=360"/>
+<img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=youtube&userid=UCBR8-60-B28hp2BmDPdntcQ&width=360"/>
 
-`https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=youtube&userid=UCrXUsMBcfTVqwAS7DKg9C0Q&width=360`
+`https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=youtube&userid=UCBR8-60-B28hp2BmDPdntcQ&width=360`
 - Accept url parameters
   - platform
     - youtube
