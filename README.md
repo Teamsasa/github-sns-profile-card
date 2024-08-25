@@ -4,6 +4,7 @@
    <h3>▼ sample ▼</h3>
    <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=zenn&userid=zenn"/>
    <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=qiita&userid=Qiita"/>
+   <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=stackoverflow&userid=1"/>
    <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=youtube&userid=UCrXUsMBcfTVqwAS7DKg9C0Q"/>
    <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=note&userid=info"/>
    <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=atcoder&userid=chokudai"/>
@@ -29,6 +30,17 @@
     - qiita
   - usreid
     - Qiita user ID
+
+### StackOverflow
+<img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=stackoverflow&userid=1"/>
+
+`https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=stackoverflow&userid=1`
+- Accept url parameters
+  - platform
+    - stackoverflow
+  - usreid
+    - StackOverflow user ID
+    - We don't support`https://ja.stackoverflow.com/`
 
 ### YouTube
 <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=youtube&userid=UCrXUsMBcfTVqwAS7DKg9C0Q"/>
