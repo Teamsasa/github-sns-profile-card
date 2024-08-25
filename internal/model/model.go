@@ -10,6 +10,7 @@ var PlatformIcons = map[string]string{
 	"note":          "internal/server/assets/note.png",
 	"youtube":       "internal/server/assets/youtube.png",
 	"instagram":     "internal/server/assets/instagram.png",
+	"facebook":      "internal/server/assets/facebook.png",
 }
 
 var PlatformURLs = map[string]string{
@@ -22,6 +23,7 @@ var PlatformURLs = map[string]string{
 	"note":          "https://note.com/",
 	"youtube":       "https://youtube.com/",
 	"instagram":     "https://instagram.com/",
+	"facebook":      "https://facebook.com/",
 }
 
 var PlatformColors = map[string]string{
@@ -34,6 +36,7 @@ var PlatformColors = map[string]string{
 	"note":          "#00A7AF",
 	"youtube":       "#FF0000",
 	"instagram":     "#E4405F",
+	"facebook":      "#1877F2",
 }
 
 var PlatformBgColors = map[string]string{
@@ -46,6 +49,7 @@ var PlatformBgColors = map[string]string{
 	"note":          "#F5F5F5",
 	"youtube":       "#FFFFFF",
 	"instagram":     "#F5F5F5",
+	"facebook":      "#F5F5F5",
 }
 
 var PlatformFontColors = map[string]string{
@@ -58,6 +62,7 @@ var PlatformFontColors = map[string]string{
 	"note":          "#000000",
 	"youtube":       "#000000",
 	"instagram":     "#000000",
+	"facebook":      "#000000",
 }
 
 type PlatformUserInfo struct {

@@ -174,6 +174,8 @@ func fetchUserData(platform, username string) (*model.PlatformUserInfo, error) {
 		return usecase.FetchYoutubeData(username)
 	case "instagram":
 		return usecase.FetchInstagramData(username)
+	case "facebook":
+		return usecase.FetchFacebookData(username)
 	}
 	return nil, fmt.Errorf("platform not supported")
 }
