@@ -1,5 +1,0 @@
-{
-    "api": {
-      "entrypoint": "cmd/api/main.go"
-    }
-  }
