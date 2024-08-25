@@ -21,7 +21,7 @@
   - usreid
     - zenn user ID
   - width(optional)
-    - width(defalt = 260)
+    - width(default = 260)
 
 ### Qiita
 <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=qiita&userid=Qiita"/>
@@ -33,7 +33,7 @@
   - usreid
     - Qiita user ID
   - width(optional)
-    - width(defalt = 260)
+    - width(default = 260)
 
 ### StackOverflow
 <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=stackoverflow&userid=1"/>
@@ -46,7 +46,7 @@
     - StackOverflow user ID
     - We don't support`https://ja.stackoverflow.com/`
   - width(optional)
-    - width(defalt = 260)
+    - width(default = 260)
 
 ### YouTube
 <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=youtube&userid=UCrXUsMBcfTVqwAS7DKg9C0Q&width=360"/>
@@ -58,7 +58,7 @@
   - usreid
     - YouTube channel ID
   - width(optional)
-    - width(defalt = 260)
+    - width(default = 260)
 
 ### Note
 <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=note&userid=info"/>
@@ -70,7 +70,7 @@
   - usreid
     - Note user ID
   - width(optional)
-    - width(defalt = 260)
+    - width(default = 260)
 
 ### AtCoder
 <img src="https://github-sns-profile-card-e53bc5obaa-an.a.run.app/svg?platform=atcoder&userid=chokudai"/>
@@ -82,4 +82,4 @@
   - usreid
     - Atcoder user ID
   - width(optional)
-    - width(defalt = 260)
+    - width(default = 260)
