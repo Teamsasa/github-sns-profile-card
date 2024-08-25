@@ -40,7 +40,7 @@ func FetchYoutubeData(username string) (*model.PlatformUserInfo, error) {
 	var result struct {
 		Items []struct {
 			Snippet struct {
-				Username string `json:"title"`
+				Username  string `json:"title"`
 				CustomUrl string `json:"customUrl"`
 			} `json:"snippet"`
 			Statistics struct {

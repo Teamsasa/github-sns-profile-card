@@ -21,22 +21,21 @@ func FetchInstagramData(userID string) (*model.PlatformUserInfo, error) {
 	defer resp.Body.Close()
 
 	// ステータスコードがOKでない場合の処理
-if resp.StatusCode != http.StatusOK {
-    var errorResp struct {
-        Error struct {
-            Message string `json:"message"`
-            Type    string `json:"type"`
-            Code    int    `json:"code"`
-            ErrorUserTitle string `json:"error_user_title"` // エラー詳細を取得するために追加
-            ErrorUserMsg string `json:"error_user_msg"`   // エラー詳細を取得するために追加
-        } `json:"error"`
-    }
-    if err := json.NewDecoder(resp.Body).Decode(&errorResp); err == nil {
-        return nil, fmt.Errorf("Instagram API error: %s (type: %s, code: %d, user_title: %s, user_msg: %s)", errorResp.Error.Message, errorResp.Error.Type, errorResp.Error.Code, errorResp.Error.ErrorUserTitle, errorResp.Error.ErrorUserMsg)
-    }// エラー詳細を取得するために追加　怒られてるけど
-    return nil, fmt.Errorf("API error: status code %d", resp.StatusCode)
-}
-
+	if resp.StatusCode != http.StatusOK {
+		var errorResp struct {
+			Error struct {
+				Message        string `json:"message"`
+				Type           string `json:"type"`
+				Code           int    `json:"code"`
+				ErrorUserTitle string `json:"error_user_title"` // エラー詳細を取得するために追加
+				ErrorUserMsg   string `json:"error_user_msg"`   // エラー詳細を取得するために追加
+			} `json:"error"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&errorResp); err == nil {
+			return nil, fmt.Errorf("Instagram API error: %s (type: %s, code: %d, user_title: %s, user_msg: %s)", errorResp.Error.Message, errorResp.Error.Type, errorResp.Error.Code, errorResp.Error.ErrorUserTitle, errorResp.Error.ErrorUserMsg)
+		} // エラー詳細を取得するために追加　怒られてるけど
+		return nil, fmt.Errorf("API error: status code %d", resp.StatusCode)
+	}
 
 	// レスポンスデータを解析
 	var user struct {

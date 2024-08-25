@@ -35,21 +35,21 @@ func FetchFacebookData(userID string) (*model.PlatformUserInfo, error) {
 		}
 		if err := json.Unmarshal(body, &errorResp); err == nil {
 			return nil, fmt.Errorf("Facebook API error: %s (type: %s, code: %d)", errorResp.Error.Message, errorResp.Error.Type, errorResp.Error.Code)
-		}// エラー詳細を取得するために追加　怒られてるけど
+		} // エラー詳細を取得するために追加　怒られてるけど
 		return nil, fmt.Errorf("API error: status code %d, response: %s", resp.StatusCode, string(body))
 	}
 
 	var user struct {
 		FollowersCount int `json:"followers_count"`
 		FriendsCount   int `json:"friends_count"`
-		Posts struct {
+		Posts          struct {
 			Summary struct {
 				TotalCount int `json:"total_count"`
 			} `json:"summary"`
 		} `json:"posts"`
 	}
 
-	if err := json.Unmarshal(body, &user); err !=nil {
+	if err := json.Unmarshal(body, &user); err != nil {
 		return nil, fmt.Errorf("JSON decode error: %w", err)
 	}
 
