@@ -41,9 +41,17 @@ func parseLinkedinHTML(resp *http.Response) (*model.PlatformUserInfo, error) {
 	if len(splitted) < 3 {
 		return nil, fmt.Errorf("failed to split description")
 	}
-	experience := strings.TrimPrefix(splitted[1], "Experience: ")
-	education := strings.TrimPrefix(splitted[2], "Education: ")
-	location := strings.TrimPrefix(splitted[3], "Location: ")
+
+	var experience, education, location string
+	for _, s := range splitted {
+		if strings.Contains(s, "Experience: ") {
+			experience = strings.Replace(s, "Experience: ", "", 1)
+		} else if strings.Contains(s, "Education: ") {
+			education = strings.Replace(s, "Education: ", "", 1)
+		} else if strings.Contains(s, "Location: ") {
+			location = strings.Replace(s, "Location: ", "", 1)
+		}
+	}
 
 	selection = doc.Find("meta[property='profile:first_name']")
 	firstName, exists := selection.Attr("content")
