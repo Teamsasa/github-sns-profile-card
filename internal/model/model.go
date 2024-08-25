@@ -80,4 +80,7 @@ type PlatformUserInfo struct {
 	CustomURL      string // Youtube用のフィールド
 	TotalVideos    int    // Youtube用のフィールド
 	TotalViewCount int    // Youtube用のフィールド
+	Experience     string // Linkedin用のフィールド
+	Education      string // Linkedin用のフィールド
+	Location       string // Linkedin用のフィールド
 }
