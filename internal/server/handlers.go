@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"profile/internal/model"
 	"profile/internal/usecase"
+	"strconv"
 
 	svg "github.com/ajstarks/svgo"
 )
@@ -80,7 +80,7 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-	width = 260
+		width = 260
 	}
 	height := 120
 	borderRadius := 20
@@ -102,7 +102,7 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	fontStyle := fmt.Sprintf("font-family:opensans;font-size:15px;fill:%s;font-weight:bold;", textColor)
 
 	// 統計情報
-	if platform == "stackoverflow" || platform == "note" || platform == "youtube" {
+	if platform == "stackoverflow" || platform == "note" || platform == "youtube" || platform == "linkedin" {
 		canvas.Text(110+strokeWidth, 25+strokeWidth, fmt.Sprintf(userInfo.UserName), fontStyle)
 	} else {
 		canvas.Text(110+strokeWidth, 25+strokeWidth, fmt.Sprintf("@%s", username), fontStyle)
@@ -111,6 +111,8 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		canvas.Text(110+strokeWidth, 50+strokeWidth, fmt.Sprintf("Reputation: %s", usecase.FormatNumber(userInfo.Reputation)), fontStyle)
 	} else if platform == "atcoder" {
 		canvas.Text(110+strokeWidth, 50+strokeWidth, fmt.Sprintf("Ranking: %s", usecase.FormatNumber(userInfo.Ranking)), fontStyle)
+	} else if platform == "linkedin" {
+		canvas.Text(110+strokeWidth, 50+strokeWidth, fmt.Sprintf("Experience: %s", userInfo.Experience), fontStyle)
 	} else {
 		canvas.Text(110+strokeWidth, 50+strokeWidth, fmt.Sprintf("Followers: %s", usecase.FormatNumber(userInfo.FollowersCount)), fontStyle)
 	}
@@ -127,6 +129,8 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		canvas.Text(110+strokeWidth, 75+strokeWidth, fmt.Sprintf("Videos: %s", usecase.FormatNumber(userInfo.TotalVideos)), fontStyle)
 	} else if platform == "atcoder" {
 		canvas.Text(110+strokeWidth, 75+strokeWidth, fmt.Sprintf("Rating: %s", usecase.FormatNumber(userInfo.Rating)), fontStyle)
+	} else if platform == "linkedin" {
+		canvas.Text(110+strokeWidth, 75+strokeWidth, fmt.Sprintf("Education: %s", userInfo.Education), fontStyle)
 	} else {
 		canvas.Text(110+strokeWidth, 75+strokeWidth, fmt.Sprintf("Following: %s", usecase.FormatNumber(userInfo.FollowingCount)), fontStyle)
 	}
@@ -145,6 +149,8 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		canvas.Text(110+strokeWidth, 100+strokeWidth, fmt.Sprintf("Notes: %s", usecase.FormatNumber(userInfo.ArticlesCount)), fontStyle)
 	} else if platform == "atcoder" {
 		canvas.Text(110+strokeWidth, 100+strokeWidth, fmt.Sprintf("Matches: %s", usecase.FormatNumber(userInfo.RatedMatches)), fontStyle)
+	} else if platform == "linkedin" {
+		canvas.Text(110+strokeWidth, 100+strokeWidth, fmt.Sprintf("Location: %s", userInfo.Location), fontStyle)
 	} else {
 		canvas.Text(110+strokeWidth, 100+strokeWidth, fmt.Sprintf("Posts: %s", usecase.FormatNumber(userInfo.ArticlesCount)), fontStyle)
 	}
