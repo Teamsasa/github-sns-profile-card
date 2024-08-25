@@ -1,8 +1,10 @@
 package server
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
+	"os"
 	"profile/internal/model"
 	"profile/internal/usecase"
 
@@ -30,6 +32,21 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 		handleError(w, nil, http.StatusBadRequest, "Unknown platform")
 		return
 	}
+	// アイコンをローカルファイルから取得してBase64エンコード
+	f, err := os.Open(iconURL)
+	if err != nil {
+		handleError(w, err, http.StatusInternalServerError, "Failed to open icon file")
+		return
+	}
+	defer f.Close()
+	fileStat, err := f.Stat()
+	if err != nil {
+		handleError(w, err, http.StatusInternalServerError, "Failed to get icon file info")
+		return
+	}
+	iconData := make([]byte, fileStat.Size())
+	f.Read(iconData)
+	iconDataBase64 := base64.StdEncoding.EncodeToString(iconData)
 
 	urlBase, exists := model.PlatformURLs[platform]
 	if !exists || username == "" {
@@ -69,7 +86,7 @@ func (s *Server) SVGHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(canvas.Writer, `<rect x="%d" y="%d" width="%d" height="%d" rx="%d" ry="%d" fill="%s" stroke="%s" stroke-width="%d" />`, strokeWidth, strokeWidth, width, height, borderRadius, borderRadius, model.PlatformBgColors[platform], model.PlatformColors[platform], strokeWidth)
 
 	// アイコン
-	canvas.Image(20+strokeWidth, 20+strokeWidth, 80, 80, iconURL)
+	canvas.Image(20+strokeWidth, 20+strokeWidth, 80, 80, "data:image/png;base64,"+iconDataBase64)
 
 	// 統計情報
 	if platform == "stackoverflow" || platform == "note" || platform == "youtube" {

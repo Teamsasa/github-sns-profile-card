@@ -1,15 +1,15 @@
 package model
 
 var PlatformIcons = map[string]string{
-	"zenn":          "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/zenn.png",
-	"qiita":         "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/qiita.png",
-	"twitter":       "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/twitter.png",
-	"linkedin":      "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/linkedin.png",
-	"stackoverflow": "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/stackoverflow.png",
-	"atcoder":       "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/atcoder.png",
-	"note":          "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/note.png",
-	"youtube":       "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/youtube.png",
-	"instagram":     "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/instagram.png",
+	"zenn":          "internal/server/assets/zenn.png",
+	"qiita":         "internal/server/assets/qiita.png",
+	"twitter":       "internal/server/assets/twitter.png",
+	"linkedin":      "internal/server/assets/linkedin.png",
+	"stackoverflow": "internal/server/assets/stackoverflow.png",
+	"atcoder":       "internal/server/assets/atcoder.png",
+	"note":          "internal/server/assets/note.png",
+	"youtube":       "internal/server/assets/youtube.png",
+	"instagram":     "internal/server/assets/instagram.png",
 }
 
 var PlatformURLs = map[string]string{
