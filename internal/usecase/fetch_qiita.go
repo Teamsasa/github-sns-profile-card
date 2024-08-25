@@ -10,10 +10,14 @@ import (
 // Qiitaのユーザーデータを取得する関数
 func FetchQiitaData(username string) (*model.PlatformUserInfo, error) {
 	resp, err := http.Get(fmt.Sprintf("https://qiita.com/api/v2/users/%s", username))
-	if err != nil || resp.StatusCode != http.StatusOK {
+	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch data")
+	}
 
 	var user struct {
 		FollowersCount int `json:"followers_count"`
