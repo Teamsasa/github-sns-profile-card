@@ -1,15 +1,15 @@
 package model
 
 var PlatformIcons = map[string]string{
-	"zenn":          "/assets/zenn.png",
-	"qiita":         "/assets/qiita.png",
-	"twitter":       "/assets/twitter.png",
-	"linkedin":      "/assets/linkedin.png",
-	"stackoverflow": "/assets/stackoverflow.png",
-	"atcoder":       "/assets/atcoder.png",
-	"note":          "/assets/note.png",
-	"youtube":       "/assets/youtube.png",
-	"instagram":     "/assets/instagram.png",
+	"zenn":          "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/zenn.png",
+	"qiita":         "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/qiita.png",
+	"twitter":       "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/twitter.png",
+	"linkedin":      "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/linkedin.png",
+	"stackoverflow": "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/stackoverflow.png",
+	"atcoder":       "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/atcoder.png",
+	"note":          "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/note.png",
+	"youtube":       "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/youtube.png",
+	"instagram":     "https://github-sns-profile-card-e53bc5obaa-an.a.run.app/assets/instagram.png",
 }
 
 var PlatformURLs = map[string]string{
