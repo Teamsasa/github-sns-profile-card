@@ -1,6 +1,7 @@
 module profile
 
 go 1.22.5
+toolchain go1.24.1
 
 require github.com/joho/godotenv v1.5.1
 
@@ -11,5 +12,5 @@ require (
 
 require (
 	github.com/andybalholm/cascadia v1.3.2 // indirect
-	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
 )
