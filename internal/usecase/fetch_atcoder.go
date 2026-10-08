@@ -3,12 +3,16 @@ package usecase
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 
 	"profile/internal/model"
 )
+
+var atCoderRankPattern = regexp.MustCompile(`^([0-9]+)(?:st|nd|rd|th|位)?(?:\s|$)`)
 
 // AtCoderのユーザーデータを取得する関数
 func FetchAtCoderData(username string) (*model.PlatformUserInfo, error) {
@@ -47,7 +51,12 @@ func parseAtCoderHTML(resp *http.Response) (*model.PlatformUserInfo, error) {
 		return nil, fmt.Errorf("failed to parse data")
 	}
 
-	ranking, err := strconv.Atoi(rankingStr[:len(rankingStr)-2])
+	// The rank may include an ordinal suffix and a Top percentile annotation.
+	rankMatch := atCoderRankPattern.FindStringSubmatch(strings.TrimSpace(rankingStr))
+	if rankMatch == nil {
+		return nil, fmt.Errorf("invalid AtCoder rank: %q", rankingStr)
+	}
+	ranking, err := strconv.Atoi(rankMatch[1])
 	if err != nil {
 		return nil, err
 	}
