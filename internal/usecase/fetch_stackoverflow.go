@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"profile/internal/model"
-	"sync"
 )
 
 func FetchStackoverflowData(username string) (*model.PlatformUserInfo, error) {
@@ -15,19 +14,18 @@ func FetchStackoverflowData(username string) (*model.PlatformUserInfo, error) {
 		}
 	}
 
-	var wg sync.WaitGroup
-	reputationChan := make(chan struct {
+	type reputationResult struct {
 		Reputation  int
 		DisplayName string
-	})
-	answerCountChan := make(chan int)
-	questionCountChan := make(chan int)
+	}
+	// Buffered results let workers finish even if another request fails first.
+	reputationChan := make(chan reputationResult, 1)
+	answerCountChan := make(chan int, 1)
+	questionCountChan := make(chan int, 1)
 	errChan := make(chan error, 3)
 
 	// reputationを取得
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	go func(resultChan chan reputationResult) {
 		resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s?site=stackoverflow", username))
 		if err != nil {
 			errChan <- err
@@ -53,19 +51,14 @@ func FetchStackoverflowData(username string) (*model.PlatformUserInfo, error) {
 			errChan <- fmt.Errorf("user not found")
 			return
 		}
-		reputationChan <- struct {
-			Reputation  int
-			DisplayName string
-		}{
+		resultChan <- reputationResult{
 			Reputation:  respReputation.Items[0].Reputation,
 			DisplayName: respReputation.Items[0].DisplayName,
 		}
-	}()
+	}(reputationChan)
 
 	// 回答数を取得
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	go func(resultChan chan int) {
 		resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s/answers?pagesize=100&site=stackoverflow", username))
 		if err != nil {
 			errChan <- err
@@ -85,13 +78,11 @@ func FetchStackoverflowData(username string) (*model.PlatformUserInfo, error) {
 			errChan <- err
 			return
 		}
-		answerCountChan <- len(respAnswers.Items)
-	}()
+		resultChan <- len(respAnswers.Items)
+	}(answerCountChan)
 
 	// 質問数を取得
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	go func(resultChan chan int) {
 		resp, err := http.Get(fmt.Sprintf("https://api.stackexchange.com/2.3/users/%s/questions?pagesize=100&site=stackoverflow", username))
 		if err != nil {
 			errChan <- err
@@ -111,41 +102,26 @@ func FetchStackoverflowData(username string) (*model.PlatformUserInfo, error) {
 			errChan <- err
 			return
 		}
-		questionCountChan <- len(respQuestions.Items)
-	}()
-
-	go func() {
-		wg.Wait()
-		close(reputationChan)
-		close(answerCountChan)
-		close(questionCountChan)
-		close(errChan)
-	}()
+		resultChan <- len(respQuestions.Items)
+	}(questionCountChan)
 
 	var reputation, answerCount, questionCount int
 	var displayName string
-	for {
+	// Completion depends on receiving each result, including valid zero counts.
+	for reputationChan != nil || answerCountChan != nil || questionCountChan != nil {
 		select {
-		case rep, ok := <-reputationChan:
-			if ok {
-				reputation = rep.Reputation
-				displayName = rep.DisplayName
-			}
-		case ans, ok := <-answerCountChan:
-			if ok {
-				answerCount = ans
-			}
-		case ques, ok := <-questionCountChan:
-			if ok {
-				questionCount = ques
-			}
+		case rep := <-reputationChan:
+			reputation = rep.Reputation
+			displayName = rep.DisplayName
+			reputationChan = nil
+		case ans := <-answerCountChan:
+			answerCount = ans
+			answerCountChan = nil
+		case ques := <-questionCountChan:
+			questionCount = ques
+			questionCountChan = nil
 		case err := <-errChan:
-			if err != nil {
-				return nil, err
-			}
-		}
-		if reputation != 0 && answerCount != 0 && questionCount != 0 {
-			break
+			return nil, err
 		}
 	}
 

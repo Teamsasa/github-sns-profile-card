@@ -12,10 +12,10 @@ func FetchZennData(username string) (*model.PlatformUserInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("user not found")
 	}
-	defer resp.Body.Close()
 
 	var user struct {
 		User struct {
@@ -24,9 +24,6 @@ func FetchZennData(username string) (*model.PlatformUserInfo, error) {
 			ArticlesCount  int `json:"articles_count"`
 		} `json:"user"`
 	}
-
-	fmt.Println(resp.Body)
-	fmt.Println(user)
 
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
 		return nil, err

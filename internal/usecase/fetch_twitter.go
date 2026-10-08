@@ -9,10 +9,13 @@ import (
 
 func FetchTwitterData(username string) (*model.PlatformUserInfo, error) {
 	resp, err := http.Get(fmt.Sprintf("https://api.twitter.com/2/users/by/username/%s", username))
-	if err != nil || resp.StatusCode != http.StatusOK {
+	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch Twitter data: %s", resp.Status)
+	}
 
 	var user struct {
 		FollowersCount int `json:"followers_count"`
