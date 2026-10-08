@@ -12,7 +12,7 @@ import (
 	"profile/internal/model"
 )
 
-var atCoderRankPattern = regexp.MustCompile(`^([0-9]+)(?:st|nd|rd|th|位)?(?:\s|$)`)
+var atCoderRankPattern = regexp.MustCompile(`^([0-9]+)(?:st|nd|rd|th|位)?(?:\s+\((?:Top|上位)\s+[0-9]+(?:\.[0-9]+)?%\))?$`)
 
 // AtCoderのユーザーデータを取得する関数
 func FetchAtCoderData(username string) (*model.PlatformUserInfo, error) {
